@@ -26,7 +26,7 @@ Example configuration in maven `pom.xml` with `test-events-hello-world` events:
  
         <encoding>UTF-8</encoding>
 
-        <event-scheduler-maven-plugin.version>1.0.0-SNAPSHOT</event-scheduler-maven-plugin.version>
+        <event-scheduler-maven-plugin.version>1.0.0</event-scheduler-maven-plugin.version>
         <test-events-hello-world.version>1.0.3</test-events-hello-world.version>
 
         <buildResultsUrl>${BUILD_URL}</buildResultsUrl>
