@@ -77,12 +77,13 @@
                     <version>${maven-license-plugin.version}</version>
                     <configuration>
                         <header>${header.basedir}/src/etc/header.txt</header>
-                        <strictCheck>false</strictCheck>
+                        <strictCheck>true</strictCheck>
                         <excludes>
                             <exclude>src/main/resources/*</exclude>
                             <exclude>**/LICENSE</exclude>
                             <exclude>**/*.md</exclude>
                             <exclude>.gitignore</exclude>
+                            <exclude>.idea/**</exclude>
                         </excludes>
                     </configuration>
                     <executions>
