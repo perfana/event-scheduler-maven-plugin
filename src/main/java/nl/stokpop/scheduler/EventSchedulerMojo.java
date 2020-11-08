@@ -36,7 +36,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
- * Fires events according to the schedule and blocks for given duration.
+ * Fires events according to the schedule.
+ * Send start session and stop session and waits for given duration.
+ * In case of failure or kill of process, sends abort session.
  */
 @Mojo(name = "test",
     defaultPhase = LifecyclePhase.INTEGRATION_TEST,
@@ -170,16 +172,18 @@ public class EventSchedulerMojo extends AbstractMojo {
     // volatile because possibly multiple threads are involved
     private volatile SchedulerExceptionType schedulerExceptionType = SchedulerExceptionType.NONE;
 
-    public void execute() throws MojoExecutionException {
+    @Override
+    public void execute() {
         getLog().info("Execute event-scheduler-maven-plugin");
+
+        if (!eventSchedulerEnabled) {
+            getLog().info("EventScheduler is disabled.");
+            return;
+        }
 
         boolean abortEventScheduler = false;
 
-        eventScheduler = eventSchedulerEnabled
-            ? createEventScheduler()
-            : null;
-
-        Exception ex = null;
+        eventScheduler = createEventScheduler();
 
         try {
 
@@ -204,13 +208,13 @@ public class EventSchedulerMojo extends AbstractMojo {
 
             Duration duration = Duration.ofSeconds(durationInSeconds);
 
-            getLog().info("Sleep for " + duration);
+            getLog().info("event-scheduler-maven-plugin will now wait for " + duration);
             Thread.sleep(duration.toMillis());
 
             eventScheduler.stopSession();
 
         } catch (Exception e) {
-            getLog().debug(">>> Inside catch exception: " + e);
+            getLog().warn("Inside catch exception: " + e);
             // AbortSchedulerException should just fall through and be handled like other exceptions
             // For KillSwitchException, go on with check results and assertions instead
             if (!(e instanceof KillSwitchException)) {
@@ -218,12 +222,11 @@ public class EventSchedulerMojo extends AbstractMojo {
                     getLog().debug(">>> Fail on error is enabled (true), setting abortEventScheduler to true.");
                     abortEventScheduler = true;
                 } else {
-                    getLog().warn("There were some errors, but eventFailOnError was set to false: build will not fail.");
+                    getLog().warn("There were some errors, but failOnError was set to false: build will not fail.");
                 }
-                ex = e;
             }
             else {
-                getLog().debug(">>> KillSwitchException found.");
+                getLog().warn("KillSwitchException found.");
             }
         } finally {
             if (eventScheduler != null) {
@@ -255,7 +258,6 @@ public class EventSchedulerMojo extends AbstractMojo {
                     getLog().warn("EventCheck failures found, but continue on assert failure is enabled:" + e.getMessage());
                 }
             }
-
         }
     }
 
