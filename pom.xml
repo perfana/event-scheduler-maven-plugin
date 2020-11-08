@@ -9,8 +9,37 @@
     <version>1.0.0-SNAPSHOT</version>
 
     <name>event-scheduler-maven-plugin Maven Mojo</name>
+    <inceptionYear>2020</inceptionYear>
 
-    <url>http://maven.apache.org</url>
+    <organization>
+        <url>https://www.stokpop.nl</url>
+        <name>Stokpop</name>
+    </organization>
+
+    <developers>
+        <developer>
+            <id>peter.paul.bakker@stokpop.nl</id>
+            <name>Peter Paul Bakker</name>
+            <organization>Stokpop Software Solutions</organization>
+        </developer>
+    </developers>
+
+    <url>https://github.com/stokpop/event-scheduler-maven-plugin</url>
+
+    <scm>
+        <connection>scm:git:git@github.com:stokpop/event-scheduler-maven-plugin.git</connection>
+        <developerConnection>scm:git:git@github.com:stokpop/event-scheduler-maven-plugin.git</developerConnection>
+        <url>https://github.com/stokpop/event-scheduler-maven-plugin</url>
+        <tag>HEAD</tag>
+    </scm>
+
+    <licenses>
+        <license>
+            <name>Apache 2</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
 
     <properties>
         <encoding>UTF-8</encoding>
