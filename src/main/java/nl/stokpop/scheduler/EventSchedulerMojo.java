@@ -223,9 +223,9 @@ public class EventSchedulerMojo extends AbstractMojo {
             eventScheduler.stopSession();
 
         } catch (Exception e) {
+
             getLog().warn("Inside catch exception: " + e);
-            // AbortSchedulerException should just fall through and be handled like other exceptions
-            // For KillSwitchException, go on with check results and assertions instead
+
             if (!(e instanceof KillSwitchException)) {
                 if (failOnError) {
                     getLog().debug(">>> Fail on error is enabled (true), setting abortEventScheduler to true.");
@@ -235,7 +235,8 @@ public class EventSchedulerMojo extends AbstractMojo {
                 }
             }
             else {
-                getLog().warn("KillSwitchException found.");
+                getLog().warn("KillSwitchException found, setting abortEventScheduler to true.");
+                abortEventScheduler = true;
             }
         } finally {
             if (eventScheduler != null) {
@@ -252,11 +253,17 @@ public class EventSchedulerMojo extends AbstractMojo {
             }
         }
 
-        if ( eventScheduler != null && !eventScheduler.isSessionStopped() ) {
-            getLog().debug(">>> Stop session (because not isSessionStopped())");
-            eventScheduler.stopSession();
+        synchronized (eventSchedulerLock) {
+            if (eventScheduler != null && !eventScheduler.isSessionStopped()) {
+                getLog().debug(">>> Stop session (because not isSessionStopped())");
+                eventScheduler.stopSession();
+            }
+        }
+
+        if ( eventScheduler != null ) {
             try {
                 getLog().debug(">>> Call check results");
+                // results are always checked, also in case of abort or killswitch
                 eventScheduler.checkResults();
             } catch (EventCheckFailureException e) {
                 getLog().debug(">>> EventCheckFailureException: " + e.getMessage());
