@@ -15,28 +15,13 @@
  */
 package nl.stokpop.scheduler;
 
-import org.apache.maven.plugin.testing.AbstractMojoTestCase;
 import org.junit.Test;
 
-import java.io.File;
-
-public class EventSchedulerMojoTest extends AbstractMojoTestCase {
-
-
-    protected void setUp() throws Exception
-    {
-        // required for mojo lookups to work
-        super.setUp();
-    }
+public class EventSchedulerMojoTest {
 
     @Test
-    public void testExecute() throws Exception {
-
-        File testPom = new File( getBasedir(), "src/test/resources/event-scheduler-maven-plugin.xml" );
-
-        EventSchedulerMojo mojo = (EventSchedulerMojo) lookupMojo( "event-schedule:test", testPom );
-
-        assertNotNull( mojo );
-
+    public void testExecute() {
+        EventSchedulerMojo mojo = new EventSchedulerMojo();
+        mojo.execute();
     }
 }
