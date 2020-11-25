@@ -19,9 +19,9 @@ import nl.stokpop.eventscheduler.EventScheduler;
 import nl.stokpop.eventscheduler.EventSchedulerBuilder;
 import nl.stokpop.eventscheduler.api.*;
 import nl.stokpop.eventscheduler.exception.EventCheckFailureException;
+import nl.stokpop.eventscheduler.exception.handler.AbortSchedulerException;
 import nl.stokpop.eventscheduler.exception.handler.KillSwitchException;
 import org.apache.maven.plugin.AbstractMojo;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -32,7 +32,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -47,6 +46,9 @@ public class EventSchedulerMojo extends AbstractMojo {
 
     private final Object eventSchedulerLock = new Object();
     private EventScheduler eventScheduler;
+
+    // volatile because possibly multiple threads are involved
+    private volatile SchedulerExceptionType schedulerExceptionType = SchedulerExceptionType.NONE;
 
     /**
      * fail in case of errors, default is true
@@ -169,9 +171,6 @@ public class EventSchedulerMojo extends AbstractMojo {
     @Parameter(defaultValue = "30")
     private Integer eventKeepAliveIntervalInSeconds;
 
-    // volatile because possibly multiple threads are involved
-    private volatile SchedulerExceptionType schedulerExceptionType = SchedulerExceptionType.NONE;
-
     @Override
     public void execute() {
         getLog().info("Execute event-scheduler-maven-plugin");
@@ -192,11 +191,13 @@ public class EventSchedulerMojo extends AbstractMojo {
                 public void kill(String message) {
                     getLog().info("Killing running process, message: " + message);
                     schedulerExceptionType = SchedulerExceptionType.KILL;
+                    // the main thread will check for this exception type and kill
                 }
                 @Override
                 public void abort(String message) {
-                    getLog().info("Killing running process, message: " + message);
+                    getLog().info("Aborting running process, message: " + message);
                     schedulerExceptionType = SchedulerExceptionType.ABORT;
+                    // the main thread will check for this exception type and abort
                 }
             };
 
@@ -207,10 +208,18 @@ public class EventSchedulerMojo extends AbstractMojo {
             int durationInSeconds = rampupInSeconds + constantLoadInSeconds;
 
             Duration duration = Duration.ofSeconds(durationInSeconds);
-
+            long stopTimestamp = System.currentTimeMillis() + duration.toMillis();
             getLog().info("event-scheduler-maven-plugin will now wait for " + duration);
-            Thread.sleep(duration.toMillis());
 
+            while (System.currentTimeMillis() < stopTimestamp) {
+                Thread.sleep(1000);
+                if (schedulerExceptionType == SchedulerExceptionType.KILL) {
+                    throw new KillSwitchException("Rethrow KillSwitchException from wait loop in event-scheduler-maven-plugin.");
+                }
+                if (schedulerExceptionType == SchedulerExceptionType.ABORT) {
+                    throw new AbortSchedulerException("Rethrow AbortSchedulerException from wait loop in event-scheduler-maven-plugin.");
+                }
+            }
             eventScheduler.stopSession();
 
         } catch (Exception e) {
