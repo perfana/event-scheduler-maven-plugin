@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2020 Peter Paul Bakker - Stokpop Software Services
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,13 +15,29 @@
  */
 package nl.stokpop.scheduler;
 
+import org.junit.Before;
 import org.junit.Test;
 
-public class EventSchedulerMojoTest {
+import java.io.File;
+
+public class EventSchedulerMojoTest extends BetterAbstractMojoTestCase {
+
+    @Before
+    public void setUp() throws Exception {
+        // required for mojo lookups to work
+        super.setUp();
+    }
 
     @Test
-    public void testExecute() {
-        EventSchedulerMojo mojo = new EventSchedulerMojo();
+    public void testExecute() throws Exception {
+
+        File testPom = new File(getBasedir(), "/src/test/resources/event-scheduler-maven-plugin.xml");
+        assertNotNull(testPom);
+
+        EventSchedulerMojo mojo = (EventSchedulerMojo) lookupMojo("test", testPom);
+        assertNotNull(mojo);
+
         mojo.execute();
     }
 }
+

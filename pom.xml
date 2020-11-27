@@ -52,13 +52,15 @@
         <project.reporting.outputEncoding>${encoding}</project.reporting.outputEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <maven-plugin-api.version>3.6.3</maven-plugin-api.version>
+        <maven.version>3.6.3</maven.version>
         <maven-plugin-annotations.version>3.6.0</maven-plugin-annotations.version>
         <maven-plugin-plugin.version>3.6.0</maven-plugin-plugin.version>
-        <maven-license-plugin.version>1.10.b1</maven-license-plugin.version>
         <nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
         <header.basedir>${project.basedir}</header.basedir>
         <event-scheduler.version>2.2.2</event-scheduler.version>
+        <maven-license-plugin.version>1.10.b1</maven-license-plugin.version>
+
+
     </properties>
 
     <prerequisites>
@@ -69,7 +71,7 @@
         <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-plugin-api</artifactId>
-            <version>${maven-plugin-api.version}</version>
+            <version>${maven.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -83,10 +85,25 @@
             <artifactId>event-scheduler</artifactId>
             <version>${event-scheduler.version}</version>
         </dependency>
+
+        <!-- dependencies to annotations -->
+
+        <dependency>
+            <groupId>org.apache.maven.plugin-testing</groupId>
+            <artifactId>maven-plugin-testing-harness</artifactId>
+            <version>3.3.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-compat</artifactId>
+            <version>${maven.version}</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.11</version>
+            <version>4.13.1</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -142,7 +159,11 @@
                 </plugin>
                 <plugin>
                     <artifactId>maven-surefire-plugin</artifactId>
-                    <version>3.0.0-M4</version>
+                    <version>2.22.0</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-enforcer-plugin</artifactId>
+                    <version>3.0.0-M3</version>
                 </plugin>
                 <plugin>
                     <artifactId>maven-clean-plugin</artifactId>

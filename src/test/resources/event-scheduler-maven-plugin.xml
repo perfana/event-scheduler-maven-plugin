@@ -15,22 +15,32 @@
     limitations under the License.
 
 -->
-<project>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>nl.stokpop</groupId>
+    <artifactId>event-scheduler-test</artifactId>
+    <version>0</version>
+
     <build>
         <plugins>
             <plugin>
                 <artifactId>event-scheduler-maven-plugin</artifactId>
                 <configuration>
                     <eventDebugEnabled>true</eventDebugEnabled>
-                    <eventSystemUnderTest>${systemUnderTest}</eventSystemUnderTest>
-                    <eventVersion>${version}</eventVersion>
-                    <eventWorkload>${workload}</eventWorkload>
-                    <eventTestEnvironment>${testEnvironment}</eventTestEnvironment>
-                    <eventTestRunId>${testRunId}</eventTestRunId>
-                    <eventBuildResultsUrl>${CIBuildResultsUrl}</eventBuildResultsUrl>
-                    <eventRampupTimeInSeconds>${rampupTimeInSeconds}</eventRampupTimeInSeconds>
-                    <eventConstantLoadTimeInSeconds>${constantLoadTimeInSeconds}</eventConstantLoadTimeInSeconds>
-                    <eventAnnotations>${annotations}</eventAnnotations>
+                    <eventSystemUnderTest>my-application</eventSystemUnderTest>
+                    <eventVersion>1.2.3</eventVersion>
+                    <eventWorkload>stress-test</eventWorkload>
+                    <eventTestEnvironment>loadtest</eventTestEnvironment>
+                    <eventTestRunId>my-test-123</eventTestRunId>
+                    <eventBuildResultsUrl>http://localhost:4000/my-test-123</eventBuildResultsUrl>
+                    <eventRampupTimeInSeconds>1</eventRampupTimeInSeconds>
+                    <eventConstantLoadTimeInSeconds>4</eventConstantLoadTimeInSeconds>
+                    <eventAnnotations>annotation1</eventAnnotations>
 
                     <eventVariables>
                         <property>
@@ -38,33 +48,33 @@
                             <value>afterburner</value>
                         </property>
                     </eventVariables>
-                    <eventTags>${tags}</eventTags>
+                    <eventTags><tag1>tag1-value</tag1><tag2>tag2-value</tag2></eventTags>
                     <eventScheduleScript>
-                        ${eventScheduleScript}
+                        PT1S|restart(restart with 2 replicas)|{ server:'myserver' replicas:2 tags: [ 'first', 'second' ] }
                     </eventScheduleScript>
                     <events>
                         <!-- here you can define events, with own properties per event,
                              so you can form instance create two wiremock events with different wiremockUrls for example -->
-                        <MyWireMockEvent>
-                            <eventFactory>nl.stokpop.event.wiremock.WiremockEventFactory</eventFactory>
-                            <enabled>${eventsEnabled}</enabled>
-                            <wiremockFilesDir>src/test/resources/wiremock</wiremockFilesDir>
-                            <wiremockUrl>http://wiremock:8080</wiremockUrl>
-                        </MyWireMockEvent>
-                        <MyPerfanaEvent>
-                            <eventFactory>io.perfana.event.PerfanaEventFactory</eventFactory>
-                            <enabled>true</enabled>
-                            <perfanaUrl>${perfanaUrl}</perfanaUrl>
-                        </MyPerfanaEvent>
-                        <MyLoadRunnerCloudEvent>
-                            <eventFactory>io.perfana.event.loadrunner.LoadRunnerCloudEventFactory</eventFactory>
-                            <enabled>true</enabled>
-                            <loadRunnerUser>${loadRunnerUser}</loadRunnerUser>
-                            <loadRunnerPassword>${loadRunnerPassword}</loadRunnerPassword>
-                            <loadRunnerTenantId>${loadRunnerTenantId}</loadRunnerTenantId>
-                            <loadRunnerProjectId>1</loadRunnerProjectId>
-                            <loadRunnerLoadTestId>3</loadRunnerLoadTestId>
-                        </MyLoadRunnerCloudEvent>
+<!--                        <MyWireMockEvent>-->
+<!--                            <eventFactory>nl.stokpop.event.wiremock.WiremockEventFactory</eventFactory>-->
+<!--                            <enabled>${eventsEnabled}</enabled>-->
+<!--                            <wiremockFilesDir>src/test/resources/wiremock</wiremockFilesDir>-->
+<!--                            <wiremockUrl>http://wiremock:8080</wiremockUrl>-->
+<!--                        </MyWireMockEvent>-->
+<!--                        <MyPerfanaEvent>-->
+<!--                            <eventFactory>io.perfana.event.PerfanaEventFactory</eventFactory>-->
+<!--                            <enabled>true</enabled>-->
+<!--                            <perfanaUrl>${perfanaUrl}</perfanaUrl>-->
+<!--                        </MyPerfanaEvent>-->
+<!--                        <MyLoadRunnerCloudEvent>-->
+<!--                            <eventFactory>io.perfana.event.loadrunner.LoadRunnerCloudEventFactory</eventFactory>-->
+<!--                            <enabled>true</enabled>-->
+<!--                            <loadRunnerUser>${loadRunnerUser}</loadRunnerUser>-->
+<!--                            <loadRunnerPassword>${loadRunnerPassword}</loadRunnerPassword>-->
+<!--                            <loadRunnerTenantId>${loadRunnerTenantId}</loadRunnerTenantId>-->
+<!--                            <loadRunnerProjectId>1</loadRunnerProjectId>-->
+<!--                            <loadRunnerLoadTestId>3</loadRunnerLoadTestId>-->
+<!--                        </MyLoadRunnerCloudEvent>-->
                     </events>
                 </configuration>
             </plugin>

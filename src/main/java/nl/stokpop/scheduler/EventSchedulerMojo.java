@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2020 Peter Paul Bakker - Stokpop Software Services
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,13 +25,9 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.apache.maven.plugins.annotations.ResolutionScope;
 
 import java.time.Duration;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Properties;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -39,11 +35,10 @@ import java.util.stream.Collectors;
  * Send start session and stop session and waits for given duration.
  * In case of failure or kill of process, sends abort session.
  */
-@Mojo(name = "test",
-    defaultPhase = LifecyclePhase.INTEGRATION_TEST,
-    requiresDependencyResolution = ResolutionScope.TEST)
-public class EventSchedulerMojo extends AbstractMojo {
-
+@Mojo( name = "test", defaultPhase = LifecyclePhase.PROCESS_RESOURCES )
+public class EventSchedulerMojo
+    extends AbstractMojo
+{
     private final Object eventSchedulerLock = new Object();
     private EventScheduler eventScheduler;
 
@@ -54,19 +49,19 @@ public class EventSchedulerMojo extends AbstractMojo {
      * fail in case of errors, default is true
      */
     @Parameter(defaultValue = "true")
-    private boolean failOnError;
+    private boolean failOnError = true;
 
     /**
      * continue if there are assertion failures, default is true
      */
     @Parameter(defaultValue = "true")
-    private boolean continueOnAssertionFailure;
+    private boolean continueOnAssertionFailure = true;
     
     /**
      * enable or disable calls to EventScheduler, default is enabled
      */
     @Parameter(defaultValue = "true")
-    private boolean eventSchedulerEnabled;
+    private boolean eventSchedulerEnabled = true;
 
     /**
      * list of custom event definitions
@@ -84,37 +79,37 @@ public class EventSchedulerMojo extends AbstractMojo {
      * name of system under test.
      */
     @Parameter(defaultValue = "UNKNOWN_SYSTEM_UNDER_TEST")
-    private String eventSystemUnderTest;
+    private String eventSystemUnderTest = "UNKNOWN_SYSTEM_UNDER_TEST";
 
     /**
      * work load for this test, for instance load or stress
      */
     @Parameter(defaultValue = "UNKNOWN_WORKLOAD")
-    private String eventWorkload;
+    private String eventWorkload = "UNKNOWN_WORKLOAD";
 
     /**
      * environment for this test.
      */
     @Parameter(defaultValue = "UNKNOWN_TEST_ENVIRONMENT")
-    private String eventTestEnvironment;
+    private String eventTestEnvironment = "UNKNOWN_TEST_ENVIRONMENT";
 
     /**
      * name of product that is being tested.
      */
     @Parameter(defaultValue = "ANONYMOUS_PRODUCT")
-    private String eventProductName;
+    private String eventProductName = "ANONYMOUS_PRODUCT";
 
     /**
      * name of performance dashboard for this test.
      */
     @Parameter(defaultValue = "ANONYMOUS_DASHBOARD")
-    private String eventDashboardName;
+    private String eventDashboardName = "ANONYMOUS_DASHBOARD";
 
     /**
      * test run id.
      */
     @Parameter(defaultValue = "ANONYMOUS_TEST_ID")
-    private String eventTestRunId;
+    private String eventTestRunId = "ANONYMOUS_TEST_ID";
 
     /**
      * build results url is where the build results of this load test can be found.
@@ -126,19 +121,19 @@ public class EventSchedulerMojo extends AbstractMojo {
      * the version number of the system under test.
      */
     @Parameter(defaultValue = "1.0.0-SNAPSHOT")
-    private String eventVersion;
+    private String eventVersion = "1.0.0-SNAPSHOT";
 
     /**
      * test rampup time in seconds.
      */
     @Parameter(defaultValue = "30")
-    private String eventRampupTimeInSeconds;
+    private String eventRampupTimeInSeconds = "30";
 
     /**
      * test constant load time in seconds.
      */
     @Parameter(defaultValue = "570")
-    private String eventConstantLoadTimeInSeconds;
+    private String eventConstantLoadTimeInSeconds = "570";
 
     /**
      * test run annotations passed via environment variable
@@ -169,7 +164,7 @@ public class EventSchedulerMojo extends AbstractMojo {
      * how often is keep alive event fired. Default is 30 seconds.
      */
     @Parameter(defaultValue = "30")
-    private Integer eventKeepAliveIntervalInSeconds;
+    private Integer eventKeepAliveIntervalInSeconds = 30;
 
     @Override
     public void execute() {
@@ -211,8 +206,15 @@ public class EventSchedulerMojo extends AbstractMojo {
             long stopTimestamp = System.currentTimeMillis() + duration.toMillis();
             getLog().info("event-scheduler-maven-plugin will now wait for " + duration);
 
-            while (System.currentTimeMillis() < stopTimestamp) {
-                Thread.sleep(1000);
+            boolean justKeepLoopin = true;
+            while (System.currentTimeMillis() < stopTimestamp && justKeepLoopin) {
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    getLog().warn("Sleep got interrupted: stop wait loop.");
+                    justKeepLoopin = false;
+                }
                 if (schedulerExceptionType == SchedulerExceptionType.KILL) {
                     throw new KillSwitchException("Rethrow KillSwitchException from wait loop in event-scheduler-maven-plugin.");
                 }
@@ -220,13 +222,13 @@ public class EventSchedulerMojo extends AbstractMojo {
                     throw new AbortSchedulerException("Rethrow AbortSchedulerException from wait loop in event-scheduler-maven-plugin.");
                 }
             }
-            eventScheduler.stopSession();
 
         } catch (Exception e) {
-
             getLog().warn("Inside catch exception: " + e);
-
-            if (!(e instanceof KillSwitchException)) {
+            if (e instanceof KillSwitchException) {
+                getLog().warn("KillSwitchException found, setting abortEventScheduler to true.");
+                abortEventScheduler = true;
+            } else {
                 if (failOnError) {
                     getLog().debug(">>> Fail on error is enabled (true), setting abortEventScheduler to true.");
                     abortEventScheduler = true;
@@ -234,33 +236,23 @@ public class EventSchedulerMojo extends AbstractMojo {
                     getLog().warn("There were some errors, but failOnError was set to false: build will not fail.");
                 }
             }
-            else {
-                getLog().warn("KillSwitchException found, setting abortEventScheduler to true.");
-                abortEventScheduler = true;
-            }
         } finally {
             if (eventScheduler != null) {
                 synchronized (eventSchedulerLock) {
-                    if (abortEventScheduler && !eventScheduler.isSessionStopped()) {
-                        getLog().debug(">>> Abort is called in finally: abortEventScheduler is true");
-                        // implicit stop session
-                        eventScheduler.abortSession();
-                    } else {
-                        getLog().debug(">>> No abort called: " +
-                            "abort event scheduler is " + abortEventScheduler + ", stop is already called is " + eventScheduler.isSessionStopped());
+                    if (!eventScheduler.isSessionStopped()) {
+                        if (abortEventScheduler) {
+                            getLog().debug(">>> Abort is called in finally: abortEventScheduler is true");
+                            eventScheduler.abortSession();
+                        } else {
+                            getLog().debug(">>> Stop session (because isSessionStopped() is false and abortEventScheduler is false)");
+                            eventScheduler.stopSession();
+                        }
                     }
                 }
             }
         }
 
-        synchronized (eventSchedulerLock) {
-            if (eventScheduler != null && !eventScheduler.isSessionStopped()) {
-                getLog().debug(">>> Stop session (because not isSessionStopped())");
-                eventScheduler.stopSession();
-            }
-        }
-
-        if ( eventScheduler != null ) {
+        if (eventScheduler != null) {
             try {
                 getLog().debug(">>> Call check results");
                 // results are always checked, also in case of abort or killswitch
@@ -271,7 +263,7 @@ public class EventSchedulerMojo extends AbstractMojo {
                     throw  e;
                 }
                 else {
-                    getLog().warn("EventCheck failures found, but continue on assert failure is enabled:" + e.getMessage());
+                    getLog().warn("EventCheck failures found, but continue on assert failure is true:" + e.getMessage());
                 }
             }
         }
@@ -342,7 +334,7 @@ public class EventSchedulerMojo extends AbstractMojo {
         };
 
         // there might be null values for empty <tag></tag>
-        List<String> filteredEventTags = eventTags.stream().filter(Objects::nonNull).collect(Collectors.toList());
+        List<String> filteredEventTags = (eventTags == null) ? Collections.emptyList() : eventTags.stream().filter(Objects::nonNull).collect(Collectors.toList());
 
         TestContext testContext = new TestContextBuilder()
             .setTestRunId(eventTestRunId)
