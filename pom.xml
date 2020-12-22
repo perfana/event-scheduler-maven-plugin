@@ -59,8 +59,6 @@
         <header.basedir>${project.basedir}</header.basedir>
         <event-scheduler.version>2.2.2</event-scheduler.version>
         <maven-license-plugin.version>1.10.b1</maven-license-plugin.version>
-
-
     </properties>
 
     <prerequisites>
@@ -137,6 +135,9 @@
                             <exclude>.gitignore</exclude>
                             <exclude>.idea/**</exclude>
                         </excludes>
+                        <mapping>
+                            <java>SLASHSTAR_STYLE</java>
+                        </mapping>
                     </configuration>
                     <executions>
                         <execution>
