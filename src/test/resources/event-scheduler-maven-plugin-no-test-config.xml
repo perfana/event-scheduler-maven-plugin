@@ -36,7 +36,7 @@
             <plugin>
                 <groupId>nl.stokpop</groupId>
                 <artifactId>event-scheduler-maven-plugin</artifactId>
-                <version>1.1.0-SNAPSHOT</version>
+                <version>1.0.2-SNAPSHOT</version>
                 <configuration>
                     <eventSchedulerConfig>
                         <debugEnabled>false</debugEnabled>
@@ -46,24 +46,7 @@
                         <eventConfigs>
                             <eventConfig implementation="nl.stokpop.helloworld.event.StokpopHelloEventConfig">
                                 <name>StokpopHelloEvent1</name>
-                                <testConfig>
-                                    <systemUnderTest>my-application</systemUnderTest>
-                                    <version>1.2.3</version>
-                                    <workload>stress-test</workload>
-                                    <testEnvironment>loadtest</testEnvironment>
-                                    <testRunId>my-test-123</testRunId>
-                                    <buildResultsUrl>http://localhost:4000/my-test-123</buildResultsUrl>
-                                    <rampupTimeInSeconds>1</rampupTimeInSeconds>
-                                    <constantLoadTimeInSeconds>4</constantLoadTimeInSeconds>
-                                    <annotations>${annotation}</annotations>
-                                    <tags>
-                                        <tag>tag1-value</tag>
-                                        <tag>tag2-value</tag>
-                                    </tags>
-                                </testConfig>
-                                <scheduleScript>
-                                    PT1S|restart(restart with 2 replicas)|{ server:'myserver' replicas:2 tags: [ 'first', 'second' ] }
-                                </scheduleScript>
+                                <eventFactory>nl.stokpop.helloworld.event.StokpopHelloEventFactory</eventFactory>
                                 <myRestService>https://my-rest-api</myRestService>
                                 <myCredentials>${env.SECRET}</myCredentials>
                                 <helloMessage>${tag1Value},tag2</helloMessage>

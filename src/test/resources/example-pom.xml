@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright (C) 2020 Peter Paul Bakker - Stokpop Software Services
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>nl.stokpop</groupId>
+    <artifactId>events-test</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <properties>
+
+        <encoding>UTF-8</encoding>
+
+        <event-scheduler-maven-plugin.version>1.1.0-SNAPSHOT</event-scheduler-maven-plugin.version>
+        <test-events-hello-world.version>1.1.0-SNAPSHOT</test-events-hello-world.version>
+
+        <buildResultsUrl>${BUILD_URL}</buildResultsUrl>
+
+        <!-- Default load settings -->
+        <rampupTimeInSeconds>60</rampupTimeInSeconds>
+        <constantLoadTimeInSeconds>900</constantLoadTimeInSeconds>
+
+        <systemUnderTest>Afterburner</systemUnderTest>
+        <version>1.0</version>
+        <testEnvironment>cloud</testEnvironment>
+
+    </properties>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>nl.stokpop</groupId>
+                    <artifactId>event-scheduler-maven-plugin</artifactId>
+                    <version>${event-scheduler-maven-plugin.version}</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+
+        <plugins>
+            <plugin>
+                <groupId>nl.stokpop</groupId>
+                <artifactId>event-scheduler-maven-plugin</artifactId>
+                <configuration>
+                    <eventSchedulerConfig>
+                        <debugEnabled>true</debugEnabled>
+                        <schedulerEnabled>true</schedulerEnabled>
+                        <failOnError>true</failOnError>
+                        <continueOnEventCheckFailure>true</continueOnEventCheckFailure>
+                        <testConfig>
+                            <systemUnderTest>${systemUnderTest}</systemUnderTest>
+                            <version>${version}</version>
+                            <workload>${workload}</workload>
+                            <testEnvironment>${testEnvironment}</testEnvironment>
+                            <testRunId>${testRunId}</testRunId>
+                            <buildResultsUrl>${buildResultsUrl}</buildResultsUrl>
+                            <rampupTimeInSeconds>${rampupTimeInSeconds}</rampupTimeInSeconds>
+                            <constantLoadTimeInSeconds>${constantLoadTimeInSeconds}</constantLoadTimeInSeconds>
+                            <annotations>${annotations}</annotations>
+                            <tags>${tags}</tags>
+                        </testConfig>
+                        <scheduleScript>
+                            ${eventScheduleScript}
+                        </scheduleScript>
+                        <eventConfigs>
+                            <eventConfig implementation="nl.stokpop.helloworld.event.StokpopHelloEventConfig">
+                                <name>StokpopHelloEvent1</name>
+                                <myRestService>https://my-rest-api</myRestService>
+                                <myCredentials>${ENV.SECRET}</myCredentials>
+                            </eventConfig>
+                        </eventConfigs>
+                    </eventSchedulerConfig>
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>nl.stokpop</groupId>
+                        <artifactId>test-events-hello-world</artifactId>
+                        <version>${test-events-hello-world.version}</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>short-test</id>
+            <activation> <activeByDefault>true</activeByDefault> </activation>
+            <properties>
+                <workload>shortTest</workload>
+                <rampupTimeInSeconds>20</rampupTimeInSeconds>
+                <constantLoadTimeInSeconds>20</constantLoadTimeInSeconds>
+                <testRunId>${systemUnderTest}-${version}-${workload}-${testEnvironment}</testRunId>
+                <tags>short-test,important</tags>
+                <eventScheduleScript>
+                    PT10S|hello-world|name=pp
+                    PT20S|hello-world2|duration=2s
+                </eventScheduleScript>
+            </properties>
+        </profile>
+    </profiles>
+</project>

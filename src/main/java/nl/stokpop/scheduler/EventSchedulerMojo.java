@@ -17,18 +17,20 @@ package nl.stokpop.scheduler;
 
 import nl.stokpop.eventscheduler.EventScheduler;
 import nl.stokpop.eventscheduler.EventSchedulerBuilder;
-import nl.stokpop.eventscheduler.api.*;
+import nl.stokpop.eventscheduler.api.EventLogger;
+import nl.stokpop.eventscheduler.api.SchedulerExceptionHandler;
+import nl.stokpop.eventscheduler.api.SchedulerExceptionType;
+import nl.stokpop.eventscheduler.api.config.EventSchedulerConfig;
 import nl.stokpop.eventscheduler.exception.EventCheckFailureException;
 import nl.stokpop.eventscheduler.exception.handler.AbortSchedulerException;
 import nl.stokpop.eventscheduler.exception.handler.KillSwitchException;
 import org.apache.maven.plugin.AbstractMojo;
+import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
 import java.time.Duration;
-import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Fires events according to the schedule.
@@ -36,148 +38,30 @@ import java.util.stream.Collectors;
  * In case of failure or kill of process, sends abort session.
  */
 @Mojo( name = "test", defaultPhase = LifecyclePhase.PROCESS_RESOURCES )
-public class EventSchedulerMojo
-    extends AbstractMojo
-{
+public class EventSchedulerMojo extends AbstractMojo {
+
     private final Object eventSchedulerLock = new Object();
+
     private EventScheduler eventScheduler;
 
     // volatile because possibly multiple threads are involved
     private volatile SchedulerExceptionType schedulerExceptionType = SchedulerExceptionType.NONE;
 
-    /**
-     * fail in case of errors, default is true
-     */
-    @Parameter(defaultValue = "true")
-    private boolean failOnError = true;
-
-    /**
-     * continue if there are assertion failures, default is true
-     */
-    @Parameter(defaultValue = "true")
-    private boolean continueOnAssertionFailure = true;
-    
-    /**
-     * enable or disable calls to EventScheduler, default is enabled
-     */
-    @Parameter(defaultValue = "true")
-    private boolean eventSchedulerEnabled = true;
-
-    /**
-     * list of custom event definitions
-     */
-    @Parameter
-    private Map<String, Properties> events;
-
-    /**
-     * schedule script with events, one event per line, such as: PT1M|scale-down|replicas=2
-     */
-    @Parameter
-    private String eventScheduleScript;
-
-    /**
-     * name of system under test.
-     */
-    @Parameter(defaultValue = "UNKNOWN_SYSTEM_UNDER_TEST")
-    private String eventSystemUnderTest = "UNKNOWN_SYSTEM_UNDER_TEST";
-
-    /**
-     * work load for this test, for instance load or stress
-     */
-    @Parameter(defaultValue = "UNKNOWN_WORKLOAD")
-    private String eventWorkload = "UNKNOWN_WORKLOAD";
-
-    /**
-     * environment for this test.
-     */
-    @Parameter(defaultValue = "UNKNOWN_TEST_ENVIRONMENT")
-    private String eventTestEnvironment = "UNKNOWN_TEST_ENVIRONMENT";
-
-    /**
-     * name of product that is being tested.
-     */
-    @Parameter(defaultValue = "ANONYMOUS_PRODUCT")
-    private String eventProductName = "ANONYMOUS_PRODUCT";
-
-    /**
-     * name of performance dashboard for this test.
-     */
-    @Parameter(defaultValue = "ANONYMOUS_DASHBOARD")
-    private String eventDashboardName = "ANONYMOUS_DASHBOARD";
-
-    /**
-     * test run id.
-     */
-    @Parameter(defaultValue = "ANONYMOUS_TEST_ID")
-    private String eventTestRunId = "ANONYMOUS_TEST_ID";
-
-    /**
-     * build results url is where the build results of this load test can be found.
-     */
-    @Parameter
-    private String eventBuildResultsUrl;
-
-    /**
-     * the version number of the system under test.
-     */
-    @Parameter(defaultValue = "1.0.0-SNAPSHOT")
-    private String eventVersion = "1.0.0-SNAPSHOT";
-
-    /**
-     * test rampup time in seconds.
-     */
-    @Parameter(defaultValue = "30")
-    private String eventRampupTimeInSeconds = "30";
-
-    /**
-     * test constant load time in seconds.
-     */
-    @Parameter(defaultValue = "570")
-    private String eventConstantLoadTimeInSeconds = "570";
-
-    /**
-     * test run annotations passed via environment variable
-     */
-    @Parameter
-    private String eventAnnotations;
-
-    /**
-     * test run variables passed via environment variable
-     */
-    @Parameter
-    private Properties eventVariables;
-
-    /**
-     * test run comma separated tags via environment variable
-     */
-    @Parameter
-    private List<String> eventTags;
-
-    /**
-     * enable debug logging for events.
-     * Note: "maven -X" debug should also be active.
-     */
-    @Parameter
-    private boolean eventDebugEnabled;
-
-    /**
-     * how often is keep alive event fired. Default is 30 seconds.
-     */
-    @Parameter(defaultValue = "30")
-    private Integer eventKeepAliveIntervalInSeconds = 30;
+    @Parameter(required = true)
+    EventSchedulerConfig eventSchedulerConfig;
 
     @Override
     public void execute() {
         getLog().info("Execute event-scheduler-maven-plugin");
 
-        if (!eventSchedulerEnabled) {
+        if (eventSchedulerConfig != null && !eventSchedulerConfig.isSchedulerEnabled()) {
             getLog().info("EventScheduler is disabled.");
             return;
         }
 
         boolean abortEventScheduler = false;
 
-        eventScheduler = createEventScheduler();
+        eventScheduler = createEventScheduler(eventSchedulerConfig, getLog());
 
         try {
 
@@ -198,13 +82,13 @@ public class EventSchedulerMojo
 
             startScheduler(eventScheduler, schedulerExceptionHandler);
 
-            int rampupInSeconds = Integer.parseInt(eventRampupTimeInSeconds);
-            int constantLoadInSeconds = Integer.parseInt(eventConstantLoadTimeInSeconds);
+            int rampupInSeconds = eventSchedulerConfig.getTestConfig().getRampupTimeInSeconds();
+            int constantLoadInSeconds = eventSchedulerConfig.getTestConfig().getConstantLoadTimeInSeconds();
             int durationInSeconds = rampupInSeconds + constantLoadInSeconds;
 
             Duration duration = Duration.ofSeconds(durationInSeconds);
             long stopTimestamp = System.currentTimeMillis() + duration.toMillis();
-            getLog().info("event-scheduler-maven-plugin will now wait for " + duration);
+            getLog().info("event-scheduler-maven-plugin will now wait for " + duration + " for scheduler to finish.");
 
             boolean justKeepLoopin = true;
             while (System.currentTimeMillis() < stopTimestamp && justKeepLoopin) {
@@ -224,12 +108,12 @@ public class EventSchedulerMojo
             }
 
         } catch (Exception e) {
-            getLog().warn("Inside catch exception: " + e);
+            getLog().warn("Inside catch exception", e);
             if (e instanceof KillSwitchException) {
                 getLog().warn("KillSwitchException found, setting abortEventScheduler to true.");
                 abortEventScheduler = true;
             } else {
-                if (failOnError) {
+                if (eventSchedulerConfig.isFailOnError()) {
                     getLog().debug(">>> Fail on error is enabled (true), setting abortEventScheduler to true.");
                     abortEventScheduler = true;
                 } else {
@@ -259,11 +143,11 @@ public class EventSchedulerMojo
                 eventScheduler.checkResults();
             } catch (EventCheckFailureException e) {
                 getLog().debug(">>> EventCheckFailureException: " + e.getMessage());
-                if (!continueOnAssertionFailure) {
+                if (!eventSchedulerConfig.isContinueOnEventCheckFailure()) {
                     throw  e;
                 }
                 else {
-                    getLog().warn("EventCheck failures found, but continue on assert failure is true:" + e.getMessage());
+                    getLog().warn("EventCheck failures found, but continue on event check failure is true:" + e.getMessage());
                 }
             }
         }
@@ -298,73 +182,43 @@ public class EventSchedulerMojo
         Runtime.getRuntime().addShutdownHook(eventSchedulerShutdownThread);
     }
 
-    private EventScheduler createEventScheduler() {
+    private static EventScheduler createEventScheduler(EventSchedulerConfig eventSchedulerConfig, Log log) {
 
         EventLogger logger = new EventLogger() {
             @Override
             public void info(String message) {
-                getLog().info(message);
+                log.info(message);
             }
 
             @Override
             public void warn(String message) {
-                getLog().warn(message);
+                log.warn(message);
             }
 
             @Override
             public void error(String message) {
-                getLog().error(message);
+                log.error(message);
             }
 
             @Override
             public void error(String message, Throwable throwable) {
-                getLog().error(message, throwable);
+                log.error(message, throwable);
             }
 
             @Override
             public void debug(final String message) {
-                if (isDebugEnabled()) getLog().debug(message);
+                if (isDebugEnabled()) log.debug(message);
             }
 
             @Override
             public boolean isDebugEnabled() {
-                return eventDebugEnabled;
+                return eventSchedulerConfig.isDebugEnabled();
             }
 
         };
 
-        // there might be null values for empty <tag></tag>
-        List<String> filteredEventTags = (eventTags == null) ? Collections.emptyList() : eventTags.stream().filter(Objects::nonNull).collect(Collectors.toList());
+        return EventSchedulerBuilder.of(eventSchedulerConfig, logger);
 
-        TestContext testContext = new TestContextBuilder()
-            .setTestRunId(eventTestRunId)
-            .setSystemUnderTest(eventSystemUnderTest)
-            .setVersion(eventVersion)
-            .setWorkload(eventWorkload)
-            .setTestEnvironment(eventTestEnvironment)
-            .setCIBuildResultsUrl(eventBuildResultsUrl)
-            .setRampupTimeInSeconds(eventRampupTimeInSeconds)
-            .setConstantLoadTimeInSeconds(eventConstantLoadTimeInSeconds)
-            .setAnnotations(eventAnnotations)
-            .setTags(filteredEventTags)
-            .setVariables(eventVariables)
-            .build();
-
-        EventSchedulerSettings settings = new EventSchedulerSettingsBuilder()
-            .setKeepAliveInterval(Duration.ofSeconds(eventKeepAliveIntervalInSeconds))
-            .build();
-
-        EventSchedulerBuilder eventSchedulerBuilder = new EventSchedulerBuilder()
-            .setEventSchedulerSettings(settings)
-            .setTestContext(testContext)
-            .setAssertResultsEnabled(eventSchedulerEnabled)
-            .setCustomEvents(eventScheduleScript)
-            .setLogger(logger);
-
-        if (events != null) {
-            events.forEach(eventSchedulerBuilder::addEvent);
-        }
-
-        return eventSchedulerBuilder.build();
     }
+
 }

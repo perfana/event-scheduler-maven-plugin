@@ -15,29 +15,50 @@
  */
 package nl.stokpop.scheduler;
 
-import org.junit.Before;
-import org.junit.Test;
+import nl.stokpop.eventscheduler.exception.EventSchedulerRuntimeException;
 
 import java.io.File;
 
+// seems this test needs jUnit 3 test* named methods to work with
+// the MojoTest cases
 public class EventSchedulerMojoTest extends BetterAbstractMojoTestCase {
 
-    @Before
     public void setUp() throws Exception {
         // required for mojo lookups to work
         super.setUp();
     }
 
-    @Test
     public void testExecute() throws Exception {
 
         File testPom = new File(getBasedir(), "/src/test/resources/event-scheduler-maven-plugin.xml");
         assertNotNull(testPom);
 
         EventSchedulerMojo mojo = (EventSchedulerMojo) lookupMojo("test", testPom);
+        //EventSchedulerMojo mojo = (EventSchedulerMojo) lookupConfiguredMojo(testPom, "test");
         assertNotNull(mojo);
 
         mojo.execute();
     }
+
+    public void testExecuteNoTestConfig() throws Exception {
+
+        File testPom = new File(getBasedir(), "/src/test/resources/event-scheduler-maven-plugin-no-test-config.xml");
+        assertNotNull(testPom);
+
+        EventSchedulerMojo mojo = (EventSchedulerMojo) lookupMojo("test", testPom);
+        //EventSchedulerMojo mojo = (EventSchedulerMojo) lookupConfiguredMojo(testPom, "test");
+        assertNotNull(mojo);
+
+        try {
+            mojo.execute();
+        } catch (EventSchedulerRuntimeException e) {
+            // expected
+            System.out.println("EventSchedulerRuntimeException: " + e.getMessage());
+            return;
+        }
+        fail("expected EventSchedulerRuntimeException");
+    }
+
+
 }
 

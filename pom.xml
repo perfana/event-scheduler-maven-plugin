@@ -11,7 +11,7 @@
     <groupId>nl.stokpop</groupId>
     <artifactId>event-scheduler-maven-plugin</artifactId>
     <packaging>maven-plugin</packaging>
-    <version>1.0.2-SNAPSHOT</version>
+    <version>1.1.0-SNAPSHOT</version>
 
     <name>event-scheduler-maven-plugin Maven Mojo</name>
     <inceptionYear>2020</inceptionYear>
@@ -57,7 +57,7 @@
         <maven-plugin-plugin.version>3.6.0</maven-plugin-plugin.version>
         <nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
         <header.basedir>${project.basedir}</header.basedir>
-        <event-scheduler.version>2.2.2</event-scheduler.version>
+        <event-scheduler.version>3.0.0-M1-SNAPSHOT</event-scheduler.version>
         <maven-license-plugin.version>1.10.b1</maven-license-plugin.version>
     </properties>
 
@@ -83,6 +83,12 @@
             <artifactId>event-scheduler</artifactId>
             <version>${event-scheduler.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.16</version>
+            <scope>provided</scope>
+        </dependency>
 
         <!-- dependencies to annotations -->
 
@@ -102,6 +108,14 @@
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.13.1</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- this is added to run mojo unit test with hello-world plugin -->
+        <!-- in real world use, add this to the dependencies of the events plugin -->
+        <dependency>
+            <groupId>nl.stokpop</groupId>
+            <artifactId>test-events-hello-world</artifactId>
+            <version>1.1.0-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -131,6 +145,7 @@
                         <excludes>
                             <exclude>src/main/resources/*</exclude>
                             <exclude>**/LICENSE</exclude>
+                            <exclude>*.md</exclude>
                             <exclude>**/*.md</exclude>
                             <exclude>.gitignore</exclude>
                             <exclude>.idea/**</exclude>
@@ -160,7 +175,7 @@
                 </plugin>
                 <plugin>
                     <artifactId>maven-surefire-plugin</artifactId>
-                    <version>2.22.0</version>
+                    <version>3.0.0-M4</version>
                 </plugin>
                 <plugin>
                     <artifactId>maven-enforcer-plugin</artifactId>
