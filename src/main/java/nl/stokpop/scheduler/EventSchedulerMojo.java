@@ -21,6 +21,7 @@ import nl.stokpop.eventscheduler.api.EventLogger;
 import nl.stokpop.eventscheduler.api.SchedulerExceptionHandler;
 import nl.stokpop.eventscheduler.api.SchedulerExceptionType;
 import nl.stokpop.eventscheduler.api.config.EventSchedulerConfig;
+import nl.stokpop.eventscheduler.api.config.TestContext;
 import nl.stokpop.eventscheduler.exception.EventCheckFailureException;
 import nl.stokpop.eventscheduler.exception.handler.AbortSchedulerException;
 import nl.stokpop.eventscheduler.exception.handler.KillSwitchException;
@@ -82,11 +83,11 @@ public class EventSchedulerMojo extends AbstractMojo {
 
             startScheduler(eventScheduler, schedulerExceptionHandler);
 
-            int rampupInSeconds = eventSchedulerConfig.getTestConfig().getRampupTimeInSeconds();
-            int constantLoadInSeconds = eventSchedulerConfig.getTestConfig().getConstantLoadTimeInSeconds();
-            int durationInSeconds = rampupInSeconds + constantLoadInSeconds;
+            TestContext testContext = eventScheduler.getEventSchedulerContext().getTestContext();
+            Duration rampupTime = testContext.getRampupTime();
+            Duration constantLoad = testContext.getConstantLoadTime();
+            Duration duration = rampupTime.plus(constantLoad);
 
-            Duration duration = Duration.ofSeconds(durationInSeconds);
             long stopTimestamp = System.currentTimeMillis() + duration.toMillis();
             getLog().info("event-scheduler-maven-plugin will now wait for " + duration + " for scheduler to finish.");
 
