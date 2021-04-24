@@ -57,7 +57,7 @@
         <maven-plugin-plugin.version>3.6.0</maven-plugin-plugin.version>
         <nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
         <header.basedir>${project.basedir}</header.basedir>
-        <event-scheduler.version>3.0.1</event-scheduler.version>
+        <event-scheduler.version>3.0.2</event-scheduler.version>
         <maven-license-plugin.version>1.10.b1</maven-license-plugin.version>
     </properties>
 
