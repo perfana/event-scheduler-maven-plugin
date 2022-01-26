@@ -1,6 +1,6 @@
 <!--
 
-    Copyright (C) 2020 Peter Paul Bakker - Stokpop Software Services
+    Copyright (C) 2020 Peter Paul Bakker - Perfana
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>nl.stokpop</groupId>
+    <groupId>io.perfana</groupId>
     <artifactId>event-scheduler-test</artifactId>
     <version>0</version>
 
@@ -34,7 +34,7 @@
     <build>
         <plugins>
             <plugin>
-                <groupId>nl.stokpop</groupId>
+                <groupId>io.perfana</groupId>
                 <artifactId>event-scheduler-maven-plugin</artifactId>
                 <version>1.0.2-SNAPSHOT</version>
                 <configuration>
@@ -44,9 +44,9 @@
                         <failOnError>true</failOnError>
                         <continueOnEventCheckFailure>true</continueOnEventCheckFailure>
                         <eventConfigs>
-                            <eventConfig implementation="nl.stokpop.helloworld.event.StokpopHelloEventConfig">
-                                <name>StokpopHelloEvent1</name>
-                                <eventFactory>nl.stokpop.helloworld.event.StokpopHelloEventFactory</eventFactory>
+                            <eventConfig implementation="io.perfana.helloworld.event.HelloWorldEventConfig">
+                                <name>HelloEvent1</name>
+                                <eventFactory>io.perfana.helloworld.event.HelloWorldEventFactory</eventFactory>
                                 <myRestService>https://my-rest-api</myRestService>
                                 <myCredentials>${env.SECRET}</myCredentials>
                                 <helloMessage>${tag1Value},tag2</helloMessage>
@@ -56,7 +56,7 @@
                             <!-- here you can define events, with own properties per event,
                                  so you can form instance create two wiremock events with different wiremockUrls for example -->
                             <!--                        <MyWireMockEvent>-->
-                            <!--                            <eventFactory>nl.stokpop.event.wiremock.WiremockEventFactory</eventFactory>-->
+                            <!--                            <eventFactory>io.perfana.event.wiremock.WiremockEventFactory</eventFactory>-->
                             <!--                            <enabled>${eventsEnabled}</enabled>-->
                             <!--                            <wiremockFilesDir>src/test/resources/wiremock</wiremockFilesDir>-->
                             <!--                            <wiremockUrl>http://wiremock:8080</wiremockUrl>-->
@@ -81,9 +81,9 @@
                 <!-- this one does not work in the unit test, so added this also to pom as test dependency -->
                 <dependencies>
                     <dependency>
-                        <groupId>nl.stokpop</groupId>
+                        <groupId>io.perfana</groupId>
                         <artifactId>test-events-hello-world</artifactId>
-                        <version>1.1.0-SNAPSHOT</version>
+                        <version>2.0.0</version>
                     </dependency>
                 </dependencies>
             </plugin>

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Peter Paul Bakker - Stokpop Software Services
+ * Copyright (C) 2020 Peter Paul Bakker - Perfana
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.stokpop.scheduler;
+package io.perfana.scheduler;
 
-import nl.stokpop.eventscheduler.EventScheduler;
-import nl.stokpop.eventscheduler.EventSchedulerBuilder;
-import nl.stokpop.eventscheduler.api.EventLogger;
-import nl.stokpop.eventscheduler.api.SchedulerExceptionHandler;
-import nl.stokpop.eventscheduler.api.SchedulerExceptionType;
-import nl.stokpop.eventscheduler.api.config.EventSchedulerConfig;
-import nl.stokpop.eventscheduler.api.config.TestContext;
-import nl.stokpop.eventscheduler.exception.EventCheckFailureException;
-import nl.stokpop.eventscheduler.exception.handler.AbortSchedulerException;
-import nl.stokpop.eventscheduler.exception.handler.KillSwitchException;
+import io.perfana.eventscheduler.EventScheduler;
+import io.perfana.eventscheduler.EventSchedulerBuilder;
+import io.perfana.eventscheduler.api.EventLogger;
+import io.perfana.eventscheduler.api.SchedulerExceptionHandler;
+import io.perfana.eventscheduler.api.SchedulerExceptionType;
+import io.perfana.eventscheduler.api.config.EventSchedulerConfig;
+import io.perfana.eventscheduler.api.config.TestContext;
+import io.perfana.eventscheduler.exception.EventCheckFailureException;
+import io.perfana.eventscheduler.exception.handler.AbortSchedulerException;
+import io.perfana.eventscheduler.exception.handler.KillSwitchException;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugins.annotations.LifecyclePhase;

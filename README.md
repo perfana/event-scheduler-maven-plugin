@@ -17,7 +17,7 @@ Example configuration in maven `pom.xml` with `test-events-hello-world` events:
 
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>nl.stokpop</groupId>
+    <groupId>io.perfana</groupId>
     <artifactId>events-test</artifactId>
     <version>1.0-SNAPSHOT</version>
 
@@ -44,7 +44,7 @@ Example configuration in maven `pom.xml` with `test-events-hello-world` events:
         <pluginManagement>
             <plugins>
                 <plugin>
-                    <groupId>nl.stokpop</groupId>
+                    <groupId>io.perfana</groupId>
                     <artifactId>event-scheduler-maven-plugin</artifactId>
                     <version>${event-scheduler-maven-plugin.version}</version>
                 </plugin>
@@ -53,7 +53,7 @@ Example configuration in maven `pom.xml` with `test-events-hello-world` events:
 
         <plugins>
             <plugin>
-                <groupId>nl.stokpop</groupId>
+                <groupId>io.perfana</groupId>
                 <artifactId>event-scheduler-maven-plugin</artifactId>
                 <configuration>
                     <eventSchedulerConfig>
@@ -77,8 +77,8 @@ Example configuration in maven `pom.xml` with `test-events-hello-world` events:
                             ${eventScheduleScript}
                         </scheduleScript>
                         <eventConfigs>
-                            <eventConfig implementation="nl.stokpop.helloworld.event.StokpopEventConfig">
-                                <name>StokpopHelloEvent1</name>
+                            <eventConfig implementation="io.perfana.helloworld.event.HelloWorldEventConfig">
+                                <name>HelloEvent1</name>
                                 <myRestService>https://my-rest-api</myRestService>
                                 <myCredentials>${ENV.SECRET}</myCredentials>
                             </eventConfig>
@@ -87,7 +87,7 @@ Example configuration in maven `pom.xml` with `test-events-hello-world` events:
                 </configuration>
                 <dependencies>
                     <dependency>
-                        <groupId>nl.stokpop</groupId>
+                        <groupId>io.perfana</groupId>
                         <artifactId>test-events-hello-world</artifactId>
                         <version>${test-events-hello-world.version}</version>
                     </dependency>
@@ -122,42 +122,42 @@ This will output:
 ➜ mvn -f src/test/resources/example-pom.xml event-scheduler:test
 [INFO] Scanning for projects...
 [INFO]
-[INFO] -----------------------< nl.stokpop:events-test >-----------------------
+[INFO] -----------------------< io.perfana:events-test >-----------------------
 [INFO] Building events-test 1.0-SNAPSHOT
 [INFO] --------------------------------[ jar ]---------------------------------
 [INFO]
 [INFO] --- event-scheduler-maven-plugin:1.1.0-SNAPSHOT:test (default-cli) @ events-test ---
 [INFO] Execute event-scheduler-maven-plugin
-[StokpopHelloEvent] Class loaded
-[INFO] [StokpopHelloEvent1] [StokpopHelloEvent] Default constructor called.
-[INFO] [StokpopHelloEvent1] [StokpopHelloEvent] Number of processors: 8      cores
-[INFO] [StokpopHelloEvent1] [StokpopHelloEvent] Max memory:           4096   MB
-[INFO] [StokpopHelloEvent1] [StokpopHelloEvent] Total memory:         256    MB
-[INFO] [StokpopHelloEvent1] [StokpopHelloEvent] Free memory:          246    MB
-[INFO] [StokpopHelloEvent1] [StokpopHelloEvent] Message: Default Hello Message
+[HelloWorldEvent] Class loaded
+[INFO] [HelloEvent1] [HelloWorldEvent] Default constructor called.
+[INFO] [HelloEvent1] [HelloWorldEvent] Number of processors: 8      cores
+[INFO] [HelloEvent1] [HelloWorldEvent] Max memory:           4096   MB
+[INFO] [HelloEvent1] [HelloWorldEvent] Total memory:         256    MB
+[INFO] [HelloEvent1] [HelloWorldEvent] Free memory:          246    MB
+[INFO] [HelloEvent1] [HelloWorldEvent] Message: Default Hello Message
 [INFO] start test session
 [INFO] broadcast before test event
-[INFO] [StokpopHelloEvent1] [StokpopHelloEvent] Hello before test [Afterburner-1.0-shortTest-cloud]
-[INFO] [StokpopHelloEvent1] [StokpopHelloEvent] Sleep for 2 seconds
-[INFO] [StokpopHelloEvent1] [StokpopHelloEvent] Wakeup after 2 seconds
+[INFO] [HelloEvent1] [HelloWorldEvent] Hello before test [Afterburner-1.0-shortTest-cloud]
+[INFO] [HelloEvent1] [HelloWorldEvent] Sleep for 2 seconds
+[INFO] [HelloEvent1] [HelloWorldEvent] Wakeup after 2 seconds
 [INFO] calling keep alive every PT30S
 [INFO] create new thread: Keep-Alive-Thread
 [INFO] === custom events schedule ===
 ==> ScheduleEvent (hello-world-PT10S)                  [fire-at=PT10S    settings=name=pp                                           ]
 ==> ScheduleEvent (hello-world2-PT20S)                 [fire-at=PT20S    settings=duration=2s                                       ]
-[INFO] [StokpopHelloEvent1] [StokpopHelloEvent] Hello keep alive for test [Afterburner-1.0-shortTest-cloud]
+[INFO] [HelloEvent1] [HelloWorldEvent] Hello keep alive for test [Afterburner-1.0-shortTest-cloud]
 [INFO] create new thread: Custom-Event-Thread-1
 [INFO] create new thread: Custom-Event-Thread-2
 [INFO] event-scheduler-maven-plugin will now wait for PT40S for scheduler to finish.
 [INFO] broadcast hello-world custom event
-[INFO] [StokpopHelloEvent1] [StokpopHelloEvent] Custom hello world called:name=pp
+[INFO] [HelloEvent1] [HelloWorldEvent] Custom hello world called:name=pp
 [INFO] broadcast hello-world2 custom event
-[INFO] [StokpopHelloEvent1] [StokpopHelloEvent] WARNING: ignoring unknown event [hello-world2]
-[INFO] [StokpopHelloEvent1] [StokpopHelloEvent] Hello keep alive for test [Afterburner-1.0-shortTest-cloud]
+[INFO] [HelloEvent1] [HelloWorldEvent] WARNING: ignoring unknown event [hello-world2]
+[INFO] [HelloEvent1] [HelloWorldEvent] Hello keep alive for test [Afterburner-1.0-shortTest-cloud]
 [INFO] stop test session.
 [INFO] shutdown Executor threads
 [INFO] broadcast after test event
-[INFO] [StokpopHelloEvent1] [StokpopHelloEvent] Hello after test [Afterburner-1.0-shortTest-cloud]
+[INFO] [HelloEvent1] [HelloWorldEvent] Hello after test [Afterburner-1.0-shortTest-cloud]
 [INFO] all broadcasts for stop test session are done
 [INFO] check results called
 [INFO] broadcast check test
@@ -175,8 +175,8 @@ The `EventSchedulerMojoTest` might fail in an ide with the following error: `org
 Try to do a `mvn test` from the command line, if that succeeds, it also works from ide.
 
 ## See also
-* https://github.com/stokpop/event-scheduler
-* https://github.com/stokpop/test-events-wiremock
-* https://github.com/stokpop/test-events-hello-world
-* https://github.com/stokpop/events-gatling-maven-plugin
-* https://github.com/stokpop/events-jmeter-maven-plugin
+* https://github.com/perfana/event-scheduler
+* https://github.com/perfana/test-events-wiremock
+* https://github.com/perfana/test-events-hello-world
+* https://github.com/perfana/events-gatling-maven-plugin
+* https://github.com/perfana/events-jmeter-maven-plugin

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Peter Paul Bakker - Stokpop Software Services
+ * Copyright (C) 2020 Peter Paul Bakker - Perfana
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.stokpop.scheduler;
+package io.perfana.scheduler;
 
-import nl.stokpop.eventscheduler.exception.EventSchedulerRuntimeException;
+import io.perfana.eventscheduler.exception.EventSchedulerRuntimeException;
 
 import java.io.File;
 

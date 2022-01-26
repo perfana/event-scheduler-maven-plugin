@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-    Copyright (C) 2020 Peter Paul Bakker - Stokpop Software Services
+    Copyright (C) 2020 Peter Paul Bakker - Perfana
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>nl.stokpop</groupId>
+    <groupId>io.perfana</groupId>
     <artifactId>events-test</artifactId>
     <version>1.0-SNAPSHOT</version>
 
@@ -28,9 +28,9 @@
 
         <encoding>UTF-8</encoding>
 
-        <event-scheduler-maven-plugin.version>1.1.0-M2-SNAPSHOT</event-scheduler-maven-plugin.version>
-        <test-events-hello-world.version>1.1.0-M2-SNAPSHOT</test-events-hello-world.version>
-        <perfana-java-client.version>1.5.0-M2-SNAPSHOT</perfana-java-client.version>
+        <event-scheduler-maven-plugin.version>2.0.0</event-scheduler-maven-plugin.version>
+        <test-events-hello-world.version>2.0.0</test-events-hello-world.version>
+        <perfana-java-client.version>2.0.1</perfana-java-client.version>
 
         <buildResultsUrl>${BUILD_URL}</buildResultsUrl>
 
@@ -48,7 +48,7 @@
         <pluginManagement>
             <plugins>
                 <plugin>
-                    <groupId>nl.stokpop</groupId>
+                    <groupId>io.perfana</groupId>
                     <artifactId>event-scheduler-maven-plugin</artifactId>
                     <version>${event-scheduler-maven-plugin.version}</version>
                 </plugin>
@@ -57,7 +57,7 @@
 
         <plugins>
             <plugin>
-                <groupId>nl.stokpop</groupId>
+                <groupId>io.perfana</groupId>
                 <artifactId>event-scheduler-maven-plugin</artifactId>
                 <configuration>
                     <eventSchedulerConfig>
@@ -81,8 +81,8 @@
                             ${eventScheduleScript}
                         </scheduleScript>
                         <eventConfigs>
-                            <eventConfig implementation="nl.stokpop.helloworld.event.StokpopHelloEventConfig">
-                                <name>StokpopHelloEvent1</name>
+                            <eventConfig implementation="io.perfana.helloworld.event.HelloWorldEventConfig">
+                                <name>HelloEvent1</name>
                                 <helloInitialSleepSeconds>40</helloInitialSleepSeconds>
                                 <myRestService>https://my-rest-api</myRestService>
                                 <myCredentials>${ENV.SECRET}</myCredentials>
@@ -100,7 +100,7 @@
                 </configuration>
                 <dependencies>
                     <dependency>
-                        <groupId>nl.stokpop</groupId>
+                        <groupId>io.perfana</groupId>
                         <artifactId>test-events-hello-world</artifactId>
                         <version>${test-events-hello-world.version}</version>
                     </dependency>
