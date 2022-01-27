@@ -67,8 +67,8 @@
         <encoding>UTF-8</encoding>
         <project.build.sourceEncoding>${encoding}</project.build.sourceEncoding>
         <project.reporting.outputEncoding>${encoding}</project.reporting.outputEncoding>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.compiler.source>8</maven.compiler.source>
+        <maven.compiler.target>8</maven.compiler.target>
         <maven.version>3.8.1</maven.version>
         <maven-plugin-annotations.version>3.6.2</maven-plugin-annotations.version>
         <maven-plugin-plugin.version>3.6.0</maven-plugin-plugin.version>
@@ -77,6 +77,7 @@
         <event-scheduler.version>3.0.2</event-scheduler.version>
         <maven-license-plugin.version>1.10.b1</maven-license-plugin.version>
         <license-maven-plugin.version>4.1</license-maven-plugin.version>
+        <maven-gpg-plugin.version>3.0.1</maven-gpg-plugin.version>
     </properties>
 
     <prerequisites>
@@ -133,7 +134,7 @@
         <dependency>
             <groupId>io.perfana</groupId>
             <artifactId>test-events-hello-world</artifactId>
-            <version>2.0.0</version>
+            <version>2.1.0-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -158,7 +159,7 @@
                     <artifactId>license-maven-plugin</artifactId>
                     <version>${license-maven-plugin.version}</version>
                     <configuration>
-                        <header>${header.basedir}/src/etc/header.txt</header>
+                        <header>src/etc/header.txt</header>
                         <strictCheck>true</strictCheck>
                         <excludes>
                             <exclude>src/main/resources/*</exclude>
@@ -275,20 +276,23 @@
             <build>
                 <plugins>
                     <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-gpg-plugin</artifactId>
-                        <configuration>
-                            <useAgent>false</useAgent>
-                        </configuration>
+                        <version>${maven-gpg-plugin.version}</version>
                         <executions>
                             <execution>
                                 <id>sign-artifacts</id>
                                 <phase>verify</phase>
                                 <goals>
-                                     <goal>sign</goal>
+                                    <goal>sign</goal>
                                 </goals>
                             </execution>
                         </executions>
+                        <configuration>
+                            <gpgArguments>
+                                <arg>--pinentry-mode</arg>
+                                <arg>loopback</arg>
+                            </gpgArguments>
+                        </configuration>
                     </plugin>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
