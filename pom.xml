@@ -26,6 +26,7 @@
 
     <name>event-scheduler-maven-plugin Maven Mojo</name>
     <inceptionYear>2020</inceptionYear>
+    <url>https://github.com/perfana/event-scheduler-maven-plugin</url>
 
     <organization>
         <url>https://www.perfana.io</url>
@@ -40,7 +41,16 @@
         </developer>
     </developers>
 
-    <url>https://github.com/perfana/event-scheduler-maven-plugin</url>
+    <distributionManagement>
+        <repository>
+            <id>sonatype-nexus</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+        <snapshotRepository>
+            <id>sonatype-nexus</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
 
     <scm>
         <connection>scm:git:git@github.com:perfana/event-scheduler-maven-plugin.git</connection>
