@@ -79,6 +79,12 @@ public class EventSchedulerMojo extends AbstractMojo {
                     schedulerExceptionType = SchedulerExceptionType.ABORT;
                     // the main thread will check for this exception type and abort
                 }
+                @Override
+                public void stop(String message) {
+                    getLog().info("Stop running process, message: " + message);
+                    schedulerExceptionType = SchedulerExceptionType.STOP;
+                    // the main thread will check for this exception type and stop the test run
+                }
             };
 
             startScheduler(eventScheduler, schedulerExceptionHandler);
@@ -105,6 +111,11 @@ public class EventSchedulerMojo extends AbstractMojo {
                 }
                 if (schedulerExceptionType == SchedulerExceptionType.ABORT) {
                     throw new AbortSchedulerException("Rethrow AbortSchedulerException from wait loop in event-scheduler-maven-plugin.");
+                }
+                if (schedulerExceptionType == SchedulerExceptionType.STOP) {
+                    getLog().info("Got stop test run request from all ContinueOnKeepAliveParticipants.");
+                    eventScheduler.stopSession();
+                    justKeepLoopin = false;
                 }
             }
 
