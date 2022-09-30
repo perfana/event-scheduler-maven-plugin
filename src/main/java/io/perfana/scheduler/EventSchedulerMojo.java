@@ -120,11 +120,11 @@ public class EventSchedulerMojo extends AbstractMojo {
             }
 
         } catch (Exception e) {
-            getLog().warn("Inside catch exception", e);
             if (e instanceof KillSwitchException) {
-                getLog().warn("KillSwitchException found, setting abortEventScheduler to true.");
+                getLog().info("KillSwitchException found, setting abortEventScheduler to true.");
                 abortEventScheduler = true;
             } else {
+                getLog().warn("Inside catch exception", e);
                 if (eventSchedulerConfig.isFailOnError()) {
                     getLog().debug(">>> Fail on error is enabled (true), setting abortEventScheduler to true.");
                     abortEventScheduler = true;
