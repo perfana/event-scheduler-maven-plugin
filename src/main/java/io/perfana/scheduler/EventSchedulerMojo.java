@@ -95,7 +95,7 @@ public class EventSchedulerMojo extends AbstractMojo {
             Duration duration = rampupTime.plus(constantLoad);
 
             long stopTimestamp = System.currentTimeMillis() + duration.toMillis();
-            getLog().info("event-scheduler-maven-plugin will now wait for " + duration + " for scheduler to finish.");
+            getLog().info("The event-scheduler-maven-plugin will now wait for " + duration + " for scheduler to finish.");
 
             boolean justKeepLoopin = true;
             while (System.currentTimeMillis() < stopTimestamp && justKeepLoopin) {
@@ -118,6 +118,7 @@ public class EventSchedulerMojo extends AbstractMojo {
                     justKeepLoopin = false;
                 }
             }
+            getLog().info("The event-scheduler-maven-plugin has waited for " + duration + ". Scheduler will be stopped.");
 
         } catch (Exception e) {
             if (e instanceof KillSwitchException) {
