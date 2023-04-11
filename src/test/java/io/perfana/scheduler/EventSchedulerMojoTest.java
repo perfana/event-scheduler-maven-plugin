@@ -59,6 +59,5 @@ public class EventSchedulerMojoTest extends BetterAbstractMojoTestCase {
         fail("expected EventSchedulerRuntimeException");
     }
 
-
 }
 

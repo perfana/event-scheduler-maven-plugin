@@ -36,31 +36,31 @@
             <plugin>
                 <groupId>io.perfana</groupId>
                 <artifactId>event-scheduler-maven-plugin</artifactId>
-                <version>2.2.0</version>
+                <version>3.0.0-SNAPSHOT</version>
                 <configuration>
                     <eventSchedulerConfig>
                         <debugEnabled>false</debugEnabled>
                         <schedulerEnabled>true</schedulerEnabled>
                         <failOnError>true</failOnError>
                         <continueOnEventCheckFailure>true</continueOnEventCheckFailure>
+                        <testConfig>
+                            <systemUnderTest>my-application</systemUnderTest>
+                            <version>1.2.3</version>
+                            <workload>stress-test</workload>
+                            <testEnvironment>loadtest</testEnvironment>
+                            <testRunId>my-test-123</testRunId>
+                            <buildResultsUrl>http://localhost:4000/my-test-123</buildResultsUrl>
+                            <rampupTimeInSeconds>1</rampupTimeInSeconds>
+                            <constantLoadTimeInSeconds>4</constantLoadTimeInSeconds>
+                            <annotations>${annotation}</annotations>
+                            <tags>
+                                <tag>tag1-value</tag>
+                                <tag>tag2-value</tag>
+                            </tags>
+                        </testConfig>
                         <eventConfigs>
                             <eventConfig implementation="io.perfana.helloworld.event.HelloWorldEventConfig">
                                 <name>HelloEvent1</name>
-                                <testConfig>
-                                    <systemUnderTest>my-application</systemUnderTest>
-                                    <version>1.2.3</version>
-                                    <workload>stress-test</workload>
-                                    <testEnvironment>loadtest</testEnvironment>
-                                    <testRunId>my-test-123</testRunId>
-                                    <buildResultsUrl>http://localhost:4000/my-test-123</buildResultsUrl>
-                                    <rampupTimeInSeconds>1</rampupTimeInSeconds>
-                                    <constantLoadTimeInSeconds>4</constantLoadTimeInSeconds>
-                                    <annotations>${annotation}</annotations>
-                                    <tags>
-                                        <tag>tag1-value</tag>
-                                        <tag>tag2-value</tag>
-                                    </tags>
-                                </testConfig>
                                 <scheduleScript>
                                     PT1S|restart(restart with 2 replicas)|{ server:'myserver' replicas:2 tags: [ 'first', 'second' ] }
                                 </scheduleScript>
@@ -100,7 +100,7 @@
                     <dependency>
                         <groupId>io.perfana</groupId>
                         <artifactId>test-events-hello-world</artifactId>
-                        <version>2.1.0</version>
+                        <version>3.0.0-SNAPSHOT</version>
                     </dependency>
                 </dependencies>
             </plugin>

@@ -28,15 +28,15 @@
 
         <encoding>UTF-8</encoding>
 
-        <event-scheduler-maven-plugin.version>2.0.0</event-scheduler-maven-plugin.version>
-        <test-events-hello-world.version>2.0.0</test-events-hello-world.version>
-        <perfana-java-client.version>2.0.1</perfana-java-client.version>
+        <event-scheduler-maven-plugin.version>3.0.0-SNAPSHOT</event-scheduler-maven-plugin.version>
+        <test-events-hello-world.version>3.0.0-SNAPSHOT</test-events-hello-world.version>
+        <perfana-java-client.version>3.0.0-SNAPSHOT</perfana-java-client.version>
 
         <buildResultsUrl>${BUILD_URL}</buildResultsUrl>
 
         <!-- Default load settings -->
-        <rampupTimeInSeconds>60</rampupTimeInSeconds>
-        <constantLoadTimeInSeconds>900</constantLoadTimeInSeconds>
+        <rampupTimeInSeconds>5</rampupTimeInSeconds>
+        <constantLoadTimeInSeconds>20</constantLoadTimeInSeconds>
 
         <systemUnderTest>Afterburner</systemUnderTest>
         <version>1.0</version>
@@ -72,8 +72,8 @@
                             <testEnvironment>${testEnvironment}</testEnvironment>
                             <testRunId>${testRunId}</testRunId>
                             <buildResultsUrl>${buildResultsUrl}</buildResultsUrl>
-                            <rampupTimeInSeconds>${rampupTimeInSeconds}</rampupTimeInSeconds>
-                            <constantLoadTimeInSeconds>${constantLoadTimeInSeconds}</constantLoadTimeInSeconds>
+                            <rampupTimeInSeconds>1</rampupTimeInSeconds>
+                            <constantLoadTimeInSeconds>4</constantLoadTimeInSeconds>
                             <annotations>${annotations}</annotations>
                             <tags>${tags}</tags>
                         </testConfig>
