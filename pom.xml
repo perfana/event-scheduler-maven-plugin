@@ -21,7 +21,7 @@
 
     <groupId>io.perfana</groupId>
     <artifactId>event-scheduler-maven-plugin</artifactId>
-    <version>3.0.0-SNAPSHOT</version>
+    <version>3.0.0</version>
     <packaging>maven-plugin</packaging>
 
     <name>event-scheduler-maven-plugin Maven Mojo</name>
