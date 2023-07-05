@@ -188,6 +188,7 @@ public class EventSchedulerMojo extends AbstractMojo {
                 main.join(4000);
             } catch (InterruptedException e) {
                 getLog().warn("Interrupt while waiting for abort to finish.");
+                Thread.currentThread().interrupt();
             }
 
         };
