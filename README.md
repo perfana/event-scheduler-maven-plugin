@@ -8,6 +8,14 @@ Use plain event-scheduler from maven build to generate events during a load test
 
 Run with: `mvn event-scheduler:test`
 
+# Properties
+
+* `debugEnabled` (default: `false`) - Enable debug logging with `true`.
+* `schedulerEnabled` (default: `true`) - Disable the scheduler with `false`.
+* `failOnError` (default: `true`) - Fail the build on exceptions thrown during waiting for the result.
+* `continueOnEventCheckFailure` (default: `true`) - Continue the build then result checks are not successful.
+* `scheduleScript` (default: empty) - Schedule events with as described in [custom-events](https://github.com/perfana/event-scheduler#custom-events).
+
 ## Example 
 
 Example configuration in maven `pom.xml` with `test-events-hello-world` events:
