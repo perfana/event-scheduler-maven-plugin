@@ -13,7 +13,7 @@ Run with: `mvn event-scheduler:test`
 * `debugEnabled` (default: `false`) - Enable debug logging with `true`.
 * `schedulerEnabled` (default: `true`) - Disable the scheduler with `false`.
 * `failOnError` (default: `true`) - Fail the build on exceptions thrown during waiting for the result.
-* `continueOnEventCheckFailure` (default: `true`) - Continue the build then result checks are not successful.
+* `continueOnEventCheckFailure` (default: `false`) - Continue the build then result checks are not successful.
 * `scheduleScript` (default: empty) - Schedule events with as described in [custom-events](https://github.com/perfana/event-scheduler#custom-events).
 
 ## Example 
@@ -68,7 +68,7 @@ Example configuration in maven `pom.xml` with `test-events-hello-world` events:
                         <debugEnabled>true</debugEnabled>
                         <schedulerEnabled>true</schedulerEnabled>
                         <failOnError>true</failOnError>
-                        <continueOnEventCheckFailure>true</continueOnEventCheckFailure>
+                        <continueOnEventCheckFailure>false</continueOnEventCheckFailure>
                         <testConfig>
                             <systemUnderTest>${systemUnderTest}</systemUnderTest>
                             <version>${version}</version>
