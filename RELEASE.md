@@ -10,3 +10,7 @@
 ## 3.0.2 - November 2023
 
 * uses event-scheduler 4.0.1: improved default values for check results
+
+## 3.0.3 - January 2024
+
+* uses event-scheduler 4.0.3: improved "disabled event" handling
