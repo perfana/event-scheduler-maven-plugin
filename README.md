@@ -33,8 +33,8 @@ Example configuration in maven `pom.xml` with `test-events-hello-world` events:
 
         <encoding>UTF-8</encoding>
 
-        <event-scheduler-maven-plugin.version>1.1.0</event-scheduler-maven-plugin.version>
-        <test-events-hello-world.version>1.1.0</test-events-hello-world.version>
+        <event-scheduler-maven-plugin.version>3.0.3</event-scheduler-maven-plugin.version>
+        <test-events-hello-world.version>[3.0.0,3.1.0)</test-events-hello-world.version>
 
         <buildResultsUrl>${BUILD_URL}</buildResultsUrl>
 
@@ -134,7 +134,7 @@ This will output:
 [INFO] Building events-test 1.0-SNAPSHOT
 [INFO] --------------------------------[ jar ]---------------------------------
 [INFO]
-[INFO] --- event-scheduler-maven-plugin:1.1.0-SNAPSHOT:test (default-cli) @ events-test ---
+[INFO] --- event-scheduler-maven-plugin:3.0.3:test (default-cli) @ events-test ---
 [INFO] Execute event-scheduler-maven-plugin
 [HelloWorldEvent] Class loaded
 [INFO] [HelloEvent1] [HelloWorldEvent] Default constructor called.
