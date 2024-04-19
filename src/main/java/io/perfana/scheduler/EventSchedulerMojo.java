@@ -17,9 +17,8 @@ package io.perfana.scheduler;
 
 import io.perfana.eventscheduler.EventScheduler;
 import io.perfana.eventscheduler.EventSchedulerBuilder;
-import io.perfana.eventscheduler.api.EventLogger;
-import io.perfana.eventscheduler.api.SchedulerExceptionHandler;
-import io.perfana.eventscheduler.api.SchedulerExceptionType;
+import io.perfana.eventscheduler.api.*;
+import io.perfana.eventscheduler.api.config.EventConfig;
 import io.perfana.eventscheduler.api.config.EventSchedulerConfig;
 import io.perfana.eventscheduler.api.config.TestContext;
 import io.perfana.eventscheduler.exception.EventCheckFailureException;
@@ -32,6 +31,8 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Fires events according to the schedule.
@@ -42,6 +43,9 @@ import java.time.Duration;
 public class EventSchedulerMojo extends AbstractMojo {
 
     private final Object eventSchedulerLock = new Object();
+
+    // TODO workaround to communicate from event to plugin
+    public static volatile boolean START_WAITING = false;
 
     private EventScheduler eventScheduler;
 
@@ -62,7 +66,26 @@ public class EventSchedulerMojo extends AbstractMojo {
 
         boolean abortEventScheduler = false;
 
-        eventScheduler = createEventScheduler(eventSchedulerConfig, getLog());
+       // this class really needs to be on the classpath, otherwise: runtime exception, not found on classpath
+        String factoryClassName = "io.perfana.scheduler.SchedulerSpyEventFactory";
+
+        List<EventConfig> eventConfigs = new ArrayList<>();
+        eventConfigs.addAll(eventSchedulerConfig.getEventConfigs());
+
+        eventConfigs.add(EventConfig.builder().name("schedulerTestStartSpyEvent").eventFactory(factoryClassName).build());
+
+        EventSchedulerConfig newConfig = EventSchedulerConfig.builder()
+                .schedulerEnabled(eventSchedulerConfig.isSchedulerEnabled())
+                .debugEnabled(eventSchedulerConfig.isDebugEnabled())
+                .continueOnEventCheckFailure(eventSchedulerConfig.isContinueOnEventCheckFailure())
+                .failOnError(eventSchedulerConfig.isFailOnError())
+                .keepAliveIntervalInSeconds(eventSchedulerConfig.getKeepAliveIntervalInSeconds())
+                .testConfig(eventSchedulerConfig.getTestConfig())
+                .eventConfigs(eventConfigs)
+                .scheduleScript(eventSchedulerConfig.getScheduleScript())
+                .build();
+
+        eventScheduler = createEventScheduler(newConfig, getLog());
 
         try {
 
@@ -94,11 +117,19 @@ public class EventSchedulerMojo extends AbstractMojo {
             Duration constantLoad = testContext.getConstantLoadTime();
             Duration duration = rampupTime.plus(constantLoad);
 
-            long stopTimestamp = System.currentTimeMillis() + duration.toMillis();
-            getLog().info("The event-scheduler-maven-plugin will now wait for " + duration + " for scheduler to finish.");
+            // will be set when waiting should start (when start test event has happened).
+            long stopTimestamp = Long.MAX_VALUE;
+            boolean stopTimeIsSet = false;
 
             boolean justKeepLoopin = true;
             while (System.currentTimeMillis() < stopTimestamp && justKeepLoopin) {
+
+                if (START_WAITING && !stopTimeIsSet) {
+                    stopTimestamp = System.currentTimeMillis() + duration.toMillis();
+                    stopTimeIsSet = true;
+                    getLog().info("The event-scheduler-maven-plugin will now wait for " + duration + " for scheduler to finish.");
+                }
+
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException e) {
@@ -126,7 +157,7 @@ public class EventSchedulerMojo extends AbstractMojo {
                 abortEventScheduler = true;
             } else {
                 getLog().warn("Inside catch exception", e);
-                if (eventSchedulerConfig.isFailOnError()) {
+                if (newConfig.isFailOnError()) {
                     getLog().debug(">>> Fail on error is enabled (true), setting abortEventScheduler to true.");
                     abortEventScheduler = true;
                 } else {
@@ -156,7 +187,7 @@ public class EventSchedulerMojo extends AbstractMojo {
                 eventScheduler.checkResults();
             } catch (EventCheckFailureException e) {
                 getLog().debug(">>> EventCheckFailureException: " + e.getMessage());
-                if (!eventSchedulerConfig.isContinueOnEventCheckFailure()) {
+                if (!newConfig.isContinueOnEventCheckFailure()) {
                     throw  e;
                 }
                 else {

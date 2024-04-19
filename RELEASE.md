@@ -14,3 +14,8 @@
 ## 3.0.3 - January 2024
 
 * uses event-scheduler 4.0.3: improved "disabled event" handling
+
+## 3.0.4 - April 2024
+
+* added spy event so the waiting time only starts are testStart event - to avoid having to compensate for long before test activities, such as starting a test remotely
+* uses event-scheduler 4.0.4: ability to create new TestContexts with overrides using `withX` methods
