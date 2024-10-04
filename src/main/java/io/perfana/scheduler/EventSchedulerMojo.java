@@ -55,6 +55,9 @@ public class EventSchedulerMojo extends AbstractMojo {
     @Parameter(required = true)
     EventSchedulerConfig eventSchedulerConfig;
 
+    @Parameter
+    Long slackDurationSeconds = 0L;
+
     @Override
     public void execute() {
         getLog().info("Execute event-scheduler-maven-plugin");
@@ -125,9 +128,9 @@ public class EventSchedulerMojo extends AbstractMojo {
             while (System.currentTimeMillis() < stopTimestamp && justKeepLoopin) {
 
                 if (START_WAITING && !stopTimeIsSet) {
-                    stopTimestamp = System.currentTimeMillis() + duration.toMillis();
+                    stopTimestamp = System.currentTimeMillis() + duration.toMillis() + Duration.ofSeconds(slackDurationSeconds).toMillis();
                     stopTimeIsSet = true;
-                    getLog().info("The event-scheduler-maven-plugin will now wait for " + duration + " for scheduler to finish.");
+                    getLog().info("The event-scheduler-maven-plugin will now wait for " + duration + " for scheduler to finish (including " + slackDurationSeconds + " seconds of slack).");
                 }
 
                 try {

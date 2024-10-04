@@ -38,6 +38,7 @@
                 <artifactId>event-scheduler-maven-plugin</artifactId>
                 <version>3.0.0</version>
                 <configuration>
+                    <slackDurationSeconds>4</slackDurationSeconds>
                     <eventSchedulerConfig>
                         <debugEnabled>false</debugEnabled>
                         <schedulerEnabled>true</schedulerEnabled>

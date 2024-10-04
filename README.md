@@ -15,6 +15,11 @@ Run with: `mvn event-scheduler:test`
 * `failOnError` (default: `true`) - Fail the build on exceptions thrown during waiting for the result.
 * `continueOnEventCheckFailure` (default: `false`) - Continue the build then result checks are not successful.
 * `scheduleScript` (default: empty) - Schedule events with as described in [custom-events](https://github.com/perfana/event-scheduler#custom-events).
+* `slackDurationSeconds` (default: `0`) - Extra time to add after the duration of test has finished.
+
+# Proposed Properties 
+* `ultimateTimeout` - Ultimate time out for the commands, e.g. when using `vetoContinueOnKeepAlive` and a participant fails to send a Stop in reasonable time 
+* `vetoContinueOnKeepAlive` - only stop the keep-alives of the test when all continue on keep-alive participants have send a Stop event
 
 ## Example 
 
