@@ -19,3 +19,8 @@
 
 * added spy event so the waiting time only starts are testStart event - to avoid having to compensate for long before test activities, such as starting a test remotely
 * uses event-scheduler 4.0.4: ability to create new TestContexts with overrides using `withX` methods
+
+## 3.0.5 - January 2025
+
+* uses event-scheduler 4.0.5: improved executor handling on shutdown and logging
+* improved shutdown hook handling

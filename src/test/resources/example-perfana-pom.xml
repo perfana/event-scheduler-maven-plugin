@@ -28,9 +28,9 @@
 
         <encoding>UTF-8</encoding>
 
-        <event-scheduler-maven-plugin.version>3.0.0-SNAPSHOT</event-scheduler-maven-plugin.version>
-        <test-events-hello-world.version>3.0.0-SNAPSHOT</test-events-hello-world.version>
-        <perfana-java-client.version>3.0.0-SNAPSHOT</perfana-java-client.version>
+        <event-scheduler-maven-plugin.version>3.0.5</event-scheduler-maven-plugin.version>
+        <test-events-hello-world.version>3.0.1</test-events-hello-world.version>
+        <perfana-java-client.version>3.0.1</perfana-java-client.version>
 
         <buildResultsUrl>${BUILD_URL}</buildResultsUrl>
 
