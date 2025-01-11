@@ -28,8 +28,9 @@
 
         <encoding>UTF-8</encoding>
 
-        <event-scheduler-maven-plugin.version>3.0.0-SNAPSHOT</event-scheduler-maven-plugin.version>
-        <test-events-hello-world.version>3.0.0-SNAPSHOT</test-events-hello-world.version>
+        <event-scheduler-maven-plugin.version>3.0.5</event-scheduler-maven-plugin.version>
+        <test-events-hello-world.version>3.0.1</test-events-hello-world.version>
+        <test-events-command-runner.version>3.0.3</test-events-command-runner.version>
 
         <buildResultsUrl>${BUILD_URL}</buildResultsUrl>
 
@@ -85,6 +86,12 @@
                                 <myRestService>https://my-rest-api</myRestService>
                                 <myCredentials>${ENV.SECRET}</myCredentials>
                             </eventConfig>
+                            <eventConfig implementation="io.perfana.events.commandrunner.CommandRunnerEventConfig">
+                                <name>TestCommands</name>
+                                <onStartTest>echo simulate a running load test; sleep 12; echo end load test simulation</onStartTest>
+                                <onAbort>echo simulate abort test; sleep 6; echo end simulate abort test</onAbort>
+                                <onAfterTest>echo simulate after test; sleep 6; echo end simulate after test</onAfterTest>
+                            </eventConfig>
                         </eventConfigs>
                     </eventSchedulerConfig>
                 </configuration>
@@ -93,6 +100,11 @@
                         <groupId>io.perfana</groupId>
                         <artifactId>test-events-hello-world</artifactId>
                         <version>${test-events-hello-world.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>io.perfana</groupId>
+                        <artifactId>test-events-command-runner</artifactId>
+                        <version>${test-events-command-runner.version}</version>
                     </dependency>
                 </dependencies>
             </plugin>

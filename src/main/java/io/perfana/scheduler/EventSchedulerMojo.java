@@ -248,11 +248,11 @@ public class EventSchedulerMojo extends AbstractMojo {
 
             // wait until the abort in the shutdown hook is finished
             try {
-                getLog().info("Waiting for run abort to finish.");
+                getLog().info("Waiting for shutdown hook to finish...");
                 shutdownLatch.await();
-                getLog().info("End of run abort wait.");
+                getLog().info("Shutdown hook is finished.");
             } catch (InterruptedException e) {
-                getLog().warn("Interrupt while waiting for abort to finish.");
+                getLog().warn("Interrupt while waiting for shutdown hook to finish.");
                 Thread.currentThread().interrupt();
             }
 

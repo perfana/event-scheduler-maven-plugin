@@ -38,7 +38,7 @@ Example configuration in maven `pom.xml` with `test-events-hello-world` events:
 
         <encoding>UTF-8</encoding>
 
-        <event-scheduler-maven-plugin.version>3.0.3</event-scheduler-maven-plugin.version>
+        <event-scheduler-maven-plugin.version>3.0.5</event-scheduler-maven-plugin.version>
         <test-events-hello-world.version>[3.0.0,3.1.0)</test-events-hello-world.version>
 
         <buildResultsUrl>${BUILD_URL}</buildResultsUrl>
@@ -181,6 +181,48 @@ This will output:
 [INFO] Finished at: 2021-01-08T11:34:05+01:00
 [INFO] ------------------------------------------------------------------------
 ```
+
+# Example pom
+
+To test the plugin, use the following `example-pom.xml`:
+
+```shell
+cd src/test/resources
+mvn -f example-pom.xml event-scheduler:test
+```
+
+This example also contains the test-events-command-runner plugin, which is used to run commands on events.
+To test the abort sequence, try `ctrl-c` when the (fake) test is running. The abort command should execute
+before the process is stopped.
+
+This will output, where `^C` is the result of the `ctrl-c` key press:
+
+```text
+[INFO] The event-scheduler-maven-plugin will now wait for PT5S for scheduler to finish (including 0 seconds of slack).
+^C[INFO] test session abort called
+[INFO] shutdown KeepAlive Executor threads
+[INFO] executorKeepAlive shutdown, remaining tasks that got force shutdown: 1
+[WARNING] force shutdown task: java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask@25c160cb[Not completed, task = java.util.concurrent.Executors$RunnableAdapter@21fef02c[Wrapped task = KeepAliveRunner: Afterburner-1.0-shortTest-cloud]]
+[INFO] shutdown Custom Events Executor threads
+[INFO] executorCustomEvents shutdown, remaining tasks that got force shutdown: 2
+[WARNING] force shutdown task: java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask@5169be33[Not completed, task = java.util.concurrent.Executors$RunnableAdapter@7405167[Wrapped task = EventRunner for event ScheduleEvent hello-world(hello-world-PT10S) [fire-at=PT10S settings=name=pp]]]
+[WARNING] force shutdown task: java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask@ec0558[Not completed, task = java.util.concurrent.Executors$RunnableAdapter@7f004bed[Wrapped task = EventRunner for event ScheduleEvent hello-world2(hello-world2-PT20S) [fire-at=PT20S settings=duration=2s]]]
+[INFO] [CommandRunnerEvent] [TestCommands] No cancel needed for finished command for [Afterburner-1.0-shortTest-cloud]
+[INFO] [CommandRunnerEvent] [TestCommands] About to run abortCommand [echo simulate abort test; sleep 6; echo end simulate abort test]
+12:07:34.596 STDOUT: TestCommands: simulate abort test
+[INFO] The event-scheduler-maven-plugin has waited for PT5S. Scheduler will be stopped.
+12:07:40.610 STDOUT: TestCommands: end simulate abort test
+[INFO] [CommandRunnerEvent] [TestCommands] Command ended. Is done: true
+[INFO] Waiting for run abort to finish.
+[INFO] End of run abort wait.
+[INFO] check results called
+[INFO] broadcast check test
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+```
+
+```xml
 
 # test
 
