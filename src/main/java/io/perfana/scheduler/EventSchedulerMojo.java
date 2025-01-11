@@ -24,6 +24,7 @@ import io.perfana.eventscheduler.api.config.TestContext;
 import io.perfana.eventscheduler.exception.EventCheckFailureException;
 import io.perfana.eventscheduler.exception.handler.AbortSchedulerException;
 import io.perfana.eventscheduler.exception.handler.KillSwitchException;
+import net.jcip.annotations.GuardedBy;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -33,6 +34,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * Fires events according to the schedule.
@@ -47,48 +49,56 @@ public class EventSchedulerMojo extends AbstractMojo {
     // TODO workaround to communicate from event to plugin
     public static volatile boolean START_WAITING = false;
 
+    @GuardedBy("eventSchedulerLock")
     private EventScheduler eventScheduler;
 
     // volatile because possibly multiple threads are involved
     private volatile SchedulerExceptionType schedulerExceptionType = SchedulerExceptionType.NONE;
 
+    @GuardedBy("eventSchedulerLock")
     @Parameter(required = true)
     EventSchedulerConfig eventSchedulerConfig;
 
     @Parameter
-    Long slackDurationSeconds = 0L;
+    private volatile Long slackDurationSeconds = 0L;
 
     @Override
     public void execute() {
         getLog().info("Execute event-scheduler-maven-plugin");
 
-        if (eventSchedulerConfig != null && !eventSchedulerConfig.isSchedulerEnabled()) {
-            getLog().info("EventScheduler is disabled.");
-            return;
+        synchronized (eventSchedulerLock) {
+            if (eventSchedulerConfig != null && !eventSchedulerConfig.isSchedulerEnabled()) {
+                getLog().info("EventScheduler is disabled.");
+                return;
+            }
         }
 
         boolean abortEventScheduler = false;
 
-       // this class really needs to be on the classpath, otherwise: runtime exception, not found on classpath
+        // this class really needs to be on the classpath, otherwise: runtime exception, not found on classpath
         String factoryClassName = "io.perfana.scheduler.SchedulerSpyEventFactory";
 
-        List<EventConfig> eventConfigs = new ArrayList<>();
-        eventConfigs.addAll(eventSchedulerConfig.getEventConfigs());
+        EventSchedulerConfig newConfig;
 
-        eventConfigs.add(EventConfig.builder().name("schedulerTestStartSpyEvent").eventFactory(factoryClassName).build());
+        synchronized (eventSchedulerLock) {
+            List<EventConfig> eventConfigs = new ArrayList<>();
+            eventConfigs.addAll(eventSchedulerConfig.getEventConfigs());
 
-        EventSchedulerConfig newConfig = EventSchedulerConfig.builder()
-                .schedulerEnabled(eventSchedulerConfig.isSchedulerEnabled())
-                .debugEnabled(eventSchedulerConfig.isDebugEnabled())
-                .continueOnEventCheckFailure(eventSchedulerConfig.isContinueOnEventCheckFailure())
-                .failOnError(eventSchedulerConfig.isFailOnError())
-                .keepAliveIntervalInSeconds(eventSchedulerConfig.getKeepAliveIntervalInSeconds())
-                .testConfig(eventSchedulerConfig.getTestConfig())
-                .eventConfigs(eventConfigs)
-                .scheduleScript(eventSchedulerConfig.getScheduleScript())
-                .build();
+            eventConfigs.add(EventConfig.builder().name("schedulerTestStartSpyEvent").eventFactory(factoryClassName).build());
 
-        eventScheduler = createEventScheduler(newConfig, getLog());
+            newConfig = EventSchedulerConfig.builder()
+                    .schedulerEnabled(eventSchedulerConfig.isSchedulerEnabled())
+                    .debugEnabled(eventSchedulerConfig.isDebugEnabled())
+                    .continueOnEventCheckFailure(eventSchedulerConfig.isContinueOnEventCheckFailure())
+                    .failOnError(eventSchedulerConfig.isFailOnError())
+                    .keepAliveIntervalInSeconds(eventSchedulerConfig.getKeepAliveIntervalInSeconds())
+                    .testConfig(eventSchedulerConfig.getTestConfig())
+                    .eventConfigs(eventConfigs)
+                    .scheduleScript(eventSchedulerConfig.getScheduleScript())
+                    .build();
+
+            eventScheduler = createEventScheduler(newConfig, getLog());
+        }
 
         try {
 
@@ -113,22 +123,27 @@ public class EventSchedulerMojo extends AbstractMojo {
                 }
             };
 
-            startScheduler(eventScheduler, schedulerExceptionHandler);
+            synchronized (eventSchedulerLock) {
+                startScheduler(eventScheduler, schedulerExceptionHandler);
+            }
 
-            TestContext testContext = eventScheduler.getEventSchedulerContext().getTestContext();
-            Duration rampupTime = testContext.getRampupTime();
-            Duration constantLoad = testContext.getConstantLoadTime();
-            Duration duration = rampupTime.plus(constantLoad);
+            Duration duration;
+            synchronized (eventSchedulerLock) {
+                TestContext testContext = eventScheduler.getEventSchedulerContext().getTestContext();
+                Duration rampupTime = testContext.getRampupTime();
+                Duration constantLoad = testContext.getConstantLoadTime();
+                duration = rampupTime.plus(constantLoad);
+            }
 
             // will be set when waiting should start (when start test event has happened).
-            long stopTimestamp = Long.MAX_VALUE;
+            long stopTimestampMillis = Long.MAX_VALUE;
             boolean stopTimeIsSet = false;
 
             boolean justKeepLoopin = true;
-            while (System.currentTimeMillis() < stopTimestamp && justKeepLoopin) {
+            while (System.currentTimeMillis() < stopTimestampMillis && justKeepLoopin) {
 
                 if (START_WAITING && !stopTimeIsSet) {
-                    stopTimestamp = System.currentTimeMillis() + duration.toMillis() + Duration.ofSeconds(slackDurationSeconds).toMillis();
+                    stopTimestampMillis = System.currentTimeMillis() + duration.toMillis() + Duration.ofSeconds(slackDurationSeconds).toMillis();
                     stopTimeIsSet = true;
                     getLog().info("The event-scheduler-maven-plugin will now wait for " + duration + " for scheduler to finish (including " + slackDurationSeconds + " seconds of slack).");
                 }
@@ -148,7 +163,9 @@ public class EventSchedulerMojo extends AbstractMojo {
                 }
                 if (schedulerExceptionType == SchedulerExceptionType.STOP) {
                     getLog().info("Got stop test run request from all ContinueOnKeepAliveParticipants.");
-                    eventScheduler.stopSession();
+                    synchronized (eventSchedulerLock) {
+                        eventScheduler.stopSession();
+                    }
                     justKeepLoopin = false;
                 }
             }
@@ -168,58 +185,72 @@ public class EventSchedulerMojo extends AbstractMojo {
                 }
             }
         } finally {
-            if (eventScheduler != null) {
-                synchronized (eventSchedulerLock) {
-                    if (!eventScheduler.isSessionStopped()) {
-                        if (abortEventScheduler) {
-                            getLog().debug(">>> Abort is called in finally: abortEventScheduler is true");
-                            eventScheduler.abortSession();
-                        } else {
-                            getLog().debug(">>> Stop session (because isSessionStopped() is false and abortEventScheduler is false)");
-                            eventScheduler.stopSession();
+            synchronized (eventSchedulerLock) {
+                if (eventScheduler != null) {
+                    synchronized (eventSchedulerLock) {
+                        if (!eventScheduler.isSessionStopped()) {
+                            if (abortEventScheduler) {
+                                getLog().debug(">>> Abort is called in finally: abortEventScheduler is true");
+                                eventScheduler.abortSession();
+                            } else {
+                                getLog().debug(">>> Stop session (because isSessionStopped() is false and abortEventScheduler is false)");
+                                eventScheduler.stopSession();
+                            }
                         }
                     }
                 }
             }
         }
 
-        if (eventScheduler != null) {
-            try {
-                getLog().debug(">>> Call check results");
-                // results are always checked, also in case of abort or killswitch
-                eventScheduler.checkResults();
-            } catch (EventCheckFailureException e) {
-                getLog().debug(">>> EventCheckFailureException: " + e.getMessage());
-                if (!newConfig.isContinueOnEventCheckFailure()) {
-                    throw  e;
-                }
-                else {
-                    getLog().warn("EventCheck failures found, but continue on event check failure is true:" + e.getMessage());
+        synchronized (eventSchedulerLock) {
+            if (eventScheduler != null) {
+                try {
+                    getLog().debug(">>> Call check results");
+                    // results are always checked, also in case of abort or killswitch
+                    eventScheduler.checkResults();
+                } catch (EventCheckFailureException e) {
+                    getLog().debug(">>> EventCheckFailureException: " + e.getMessage());
+                    if (!newConfig.isContinueOnEventCheckFailure()) {
+                        throw  e;
+                    }
+                    else {
+                        getLog().warn("EventCheck failures found, but continue on event check failure is true:" + e.getMessage());
+                    }
                 }
             }
         }
     }
 
     private void startScheduler(EventScheduler eventScheduler, SchedulerExceptionHandler schedulerExceptionHandler) {
-        eventScheduler.addKillSwitch(schedulerExceptionHandler);
-        eventScheduler.startSession();
-        addShutdownHookForEventScheduler(eventScheduler);
+        synchronized (eventSchedulerLock) {
+            eventScheduler.addKillSwitch(schedulerExceptionHandler);
+            eventScheduler.startSession();
+            addShutdownHookForEventScheduler(eventScheduler);
+        }
     }
 
     private void addShutdownHookForEventScheduler(EventScheduler eventScheduler) {
-        final Thread main = Thread.currentThread();
+
+        final CountDownLatch shutdownLatch = new CountDownLatch(1);
+
         Runnable shutdowner = () -> {
-            synchronized (eventScheduler) {
-                if (!eventScheduler.isSessionStopped()) {
-                    getLog().info("Shutdown Hook: abort event scheduler session!");
-                    // implicit stop session
-                    eventScheduler.abortSession();
+            try {
+                synchronized (eventSchedulerLock) {
+                    if (!eventScheduler.isSessionStopped()) {
+                        eventScheduler.abortSession();
+                    } else {
+                        getLog().info("Shutdown Hook: event scheduler session already stopped.");
+                    }
                 }
+            } finally {
+                shutdownLatch.countDown();
             }
 
-            // try to hold on to main thread to let the abort event tasks finish properly
+            // wait until the abort in the shutdown hook is finished
             try {
-                main.join(4000);
+                getLog().info("Waiting for run abort to finish.");
+                shutdownLatch.await();
+                getLog().info("End of run abort wait.");
             } catch (InterruptedException e) {
                 getLog().warn("Interrupt while waiting for abort to finish.");
                 Thread.currentThread().interrupt();
@@ -266,7 +297,6 @@ public class EventSchedulerMojo extends AbstractMojo {
         };
 
         return EventSchedulerBuilder.of(eventSchedulerConfig, logger);
-
     }
 
 }

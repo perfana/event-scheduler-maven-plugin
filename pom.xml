@@ -129,6 +129,12 @@
             <version>4.13.2</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>2.0.16</version>
+            <scope>test</scope>
+        </dependency>
         <!-- this is added to run mojo unit test with hello-world plugin -->
         <!-- in real world use, add this to the dependencies of the events plugin -->
         <dependency>
@@ -213,7 +219,8 @@
                             <header>src/etc/header.txt</header>
                             <excludes>
                                 <exclude>src/main/resources/*</exclude>
-                                <exclude>**/LICENSE</exclude>
+                                <exclude>LICENSE</exclude>
+                                <exclude>src/main/resources/META-INF/LICENSE.txt</exclude>
                                 <exclude>*.md</exclude>
                                 <exclude>**/*.md</exclude>
                                 <exclude>.gitignore</exclude>
