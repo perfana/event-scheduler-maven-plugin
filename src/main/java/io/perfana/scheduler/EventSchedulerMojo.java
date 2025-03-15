@@ -137,13 +137,17 @@ public class EventSchedulerMojo extends AbstractMojo {
 
             // will be set when waiting should start (when start test event has happened).
             long stopTimestampMillis = Long.MAX_VALUE;
+            final long startTimestampMillis = System.currentTimeMillis();
             boolean stopTimeIsSet = false;
 
             boolean justKeepLoopin = true;
             while (System.currentTimeMillis() < stopTimestampMillis && justKeepLoopin) {
+                if (getLog().isDebugEnabled()) {
+                    getLog().debug("Waiting for scheduler to finish..." + Duration.ofMillis(stopTimestampMillis - System.currentTimeMillis()) + " left.");
+                }
 
                 if (START_WAITING && !stopTimeIsSet) {
-                    stopTimestampMillis = System.currentTimeMillis() + duration.toMillis() + Duration.ofSeconds(slackDurationSeconds).toMillis();
+                    stopTimestampMillis = startTimestampMillis + duration.toMillis() + Duration.ofSeconds(slackDurationSeconds).toMillis();
                     stopTimeIsSet = true;
                     getLog().info("The event-scheduler-maven-plugin will now wait for " + duration + " for scheduler to finish (including " + slackDurationSeconds + " seconds of slack).");
                 }
@@ -169,7 +173,9 @@ public class EventSchedulerMojo extends AbstractMojo {
                     justKeepLoopin = false;
                 }
             }
-            getLog().info("The event-scheduler-maven-plugin has waited for " + duration + ". Scheduler will be stopped.");
+            String stopMessage = !justKeepLoopin ? "Stop test run request received." : "Regular timeout reached.";
+            Duration actualDuration = Duration.ofMillis(System.currentTimeMillis() - startTimestampMillis);
+            getLog().info("The event-scheduler-maven-plugin has waited for " + actualDuration + ". " + stopMessage);
 
         } catch (Exception e) {
             if (e instanceof KillSwitchException) {
